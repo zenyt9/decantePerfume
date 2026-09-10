@@ -74,7 +74,11 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
-  background: var(--bg);
+  /* Ерөнхий дэвсгэр: дээрээс доош цэнхэр → нил ягаан → ягаан */
+  background: linear-gradient(180deg,
+    #5b6ef6 0%, #7c63ea 26%, #a35cd8 52%, #cf5ccb 77%, #f56fc0 100%);
+  background-repeat: no-repeat;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -299,12 +303,10 @@ h1, h2, h3, h4 {
      зориулсан гэрэлтүүлэг (scrim) */
   background:
     linear-gradient(90deg,
-      rgba(250,247,242,.97) 0%,
-      rgba(250,247,242,.82) 28%,
-      rgba(250,247,242,.32) 50%,
-      rgba(250,247,242,0) 66%),
-    url('../assets/hero.svg') center right / cover no-repeat,
-    var(--bg);
+      rgba(24,14,54,.34) 0%,
+      rgba(24,14,54,.14) 34%,
+      rgba(24,14,54,0) 58%),
+    url('../assets/hero.svg') center right / cover no-repeat;
 }
 .hero__inner {
   display: grid;
@@ -1002,12 +1004,8 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 
 @media (max-width: 720px) {
   .section { padding: 64px 0; }
-  /* Гар утсанд ханын зургийг зөөлөн градиентээр солиж, текст тод байлгана */
-  .hero {
-    background:
-      radial-gradient(900px 480px at 100% -10%, var(--gold-soft) 0%, transparent 60%),
-      linear-gradient(180deg, #fff 0%, var(--bg) 100%);
-  }
+  /* Гар утсанд флаконуудыг нуулгаж, зөвхөн градиент дэвсгэр + текст */
+  .hero { background: transparent; }
   .hero__inner { min-height: auto; padding: 52px 0 60px; }
   .nav {
     position: fixed; inset: var(--header-h) 0 auto 0;
@@ -1176,3 +1174,93 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   .account__name { display: none; }
   .auth, .profile, .orders-view, .checkout { padding: 26px 22px; }
 }
+
+/* ==================================================================== */
+/*  21. ГРАДИЕНТ ТЕМА (цэнхэр → ягаан)                                   */
+/*  Дэвсгэр дээр шууд байрлах текстийг цайвар болгож, хэсгүүдийг         */
+/*  тунгалаг болгоно. Картууд цагаан хэвээр (уншихад тохиромжтой).       */
+/* ==================================================================== */
+
+/* --- Хэсгүүдийг тунгалаг болгож градиентийг харуулах --- */
+.section--alt,
+.section--order { background: transparent; }
+
+/* --- Дэвсгэр дээрх гарчиг, дэд текстийг цайвар --- */
+.section__title { color: #fff; }
+.section__sub { color: rgba(255, 255, 255, .88); }
+.section__eyebrow { color: #ffe3ad; }
+.result-count { color: rgba(255, 255, 255, .85); }
+
+/* --- Hero --- */
+.hero__title { color: #fff; text-shadow: 0 2px 20px rgba(30, 16, 70, .3); }
+.hero__title em { color: #ffe3ad; }
+.hero__lead { color: #fff; }
+.hero__desc { color: rgba(255, 255, 255, .9); }
+.hero__eyebrow {
+  background: rgba(255, 255, 255, .16);
+  border-color: rgba(255, 255, 255, .35);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.hero__stats b { color: #fff; }
+.hero__stats span { color: rgba(255, 255, 255, .8); }
+.hero__cta .btn--ghost {
+  background: rgba(255, 255, 255, .16);
+  border-color: rgba(255, 255, 255, .4);
+  color: #fff;
+}
+.hero__cta .btn--ghost:hover { background: rgba(255, 255, 255, .28); }
+
+/* --- Толгой: frosted цагаан --- */
+.header { background: rgba(255, 255, 255, .7); }
+.header.is-scrolled { background: rgba(255, 255, 255, .86); }
+
+/* --- Давуу тал (features): frosted зурвас --- */
+.features {
+  background: rgba(255, 255, 255, .1);
+  border-top: 1px solid rgba(255, 255, 255, .2);
+  border-bottom: 1px solid rgba(255, 255, 255, .2);
+  backdrop-filter: blur(6px);
+}
+.feature h3 { color: #fff; }
+.feature p { color: rgba(255, 255, 255, .82); }
+.feature__icon { background: rgba(255, 255, 255, .2); color: #fff; }
+
+/* --- Яагаад декант --- */
+.why__list li { color: rgba(255, 255, 255, .9); }
+.why__list b { color: #fff; }
+.why__list li::before { border-color: #fff; }
+.why__media {
+  background: rgba(255, 255, 255, .12);
+  border-color: rgba(255, 255, 255, .22);
+  backdrop-filter: blur(4px);
+}
+
+/* --- Захиалгын мэдээлэл --- */
+.order__lead { color: rgba(255, 255, 255, .9); }
+.order__contact li { border-bottom-color: rgba(255, 255, 255, .28); }
+.order__contact span:first-child { color: rgba(255, 255, 255, .72); }
+.order__contact a, .order__contact li > span { color: #fff; }
+.order__contact a:hover { color: #ffe3ad; }
+.order__social a { border-color: rgba(255, 255, 255, .4); color: #fff; }
+.order__social a:hover { background: #fff; color: var(--ink); border-color: #fff; }
+
+/* --- Шүүлтүүр / хайлт: frosted цагаан --- */
+.filter-chip { background: rgba(255, 255, 255, .88); border-color: rgba(255, 255, 255, .5); }
+.filter-chip:hover { background: #fff; }
+.search, .select { background: rgba(255, 255, 255, .9); border-color: rgba(255, 255, 255, .5); }
+
+/* --- Футер: тунгалаг, ягаан харагдана --- */
+.footer { background: transparent; color: #fff; }
+.footer__brand .logo__name { color: #fff; }
+.footer__brand p { color: rgba(255, 255, 255, .82); }
+.footer__col h4 { color: #fff; }
+.footer__col a, .footer__col span { color: rgba(255, 255, 255, .82); }
+.footer__col a:hover { color: #ffe3ad; }
+.footer__bottom {
+  border-top-color: rgba(255, 255, 255, .22);
+  color: rgba(255, 255, 255, .75);
+}
+
+/* --- Логоны дэд текст толгой дээр --- */
+.logo__sub { color: var(--muted); }
