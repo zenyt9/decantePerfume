@@ -295,17 +295,27 @@ h1, h2, h3, h4 {
 .hero {
   position: relative;
   overflow: hidden;
+  /* Ханын зураг (2 эрэгтэй + 2 эмэгтэй флакон) + зүүн талд текст уншихад
+     зориулсан гэрэлтүүлэг (scrim) */
   background:
-    radial-gradient(1200px 500px at 80% -10%, var(--gold-soft) 0%, transparent 60%),
-    linear-gradient(180deg, #fff 0%, var(--bg) 100%);
+    linear-gradient(90deg,
+      rgba(250,247,242,.97) 0%,
+      rgba(250,247,242,.82) 28%,
+      rgba(250,247,242,.32) 50%,
+      rgba(250,247,242,0) 66%),
+    url('../assets/hero.svg') center right / cover no-repeat,
+    var(--bg);
 }
 .hero__inner {
   display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  align-items: center;
+  grid-template-columns: 1fr;
+  align-content: center;
+  min-height: clamp(520px, 54vw, 880px);
   gap: 40px;
-  padding: 72px 0 84px;
+  padding: 56px 0;
 }
+.hero__content { max-width: 600px; }
+.hero__visual { display: none; }
 .hero__eyebrow {
   display: inline-block;
   font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
@@ -992,6 +1002,13 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 
 @media (max-width: 720px) {
   .section { padding: 64px 0; }
+  /* Гар утсанд ханын зургийг зөөлөн градиентээр солиж, текст тод байлгана */
+  .hero {
+    background:
+      radial-gradient(900px 480px at 100% -10%, var(--gold-soft) 0%, transparent 60%),
+      linear-gradient(180deg, #fff 0%, var(--bg) 100%);
+  }
+  .hero__inner { min-height: auto; padding: 52px 0 60px; }
   .nav {
     position: fixed; inset: var(--header-h) 0 auto 0;
     flex-direction: column; align-items: stretch; gap: 0;
