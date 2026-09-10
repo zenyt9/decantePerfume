@@ -1,0 +1,12 @@
+{
+  "name": "decante",
+  "version": "1.0.0",
+  "description": "Décante — үнэртэй усны жижиглэн худалдааны платформ",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

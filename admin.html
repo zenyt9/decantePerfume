@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Décante — Админ самбар</title>
+  <meta name="robots" content="noindex" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin">
+
+  <!-- Апп энд рендер хийгдэнэ -->
+  <div id="admin-root">
+    <div class="ad-loading">Ачаалж байна…</div>
+  </div>
+
+  <!-- Modal ба туслах давхаргууд -->
+  <div class="ad-modal" id="ad-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="ad-modal__panel">
+      <button type="button" class="icon-btn ad-modal__close" data-ad="close-modal" aria-label="Хаах">✕</button>
+      <div id="ad-modal-content"></div>
+    </div>
+  </div>
+  <div class="overlay" id="ad-overlay"></div>
+  <div class="toast-root" id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

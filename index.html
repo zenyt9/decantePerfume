@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Décante — Ориг үнэртэй ус, жижиг савлагаагаар</title>
+  <meta name="description" content="Ориг брэндийн үнэртэй усыг 5, 10, 20 мл жижиг савлагаагаар. Хямд үнэ, 100% ориг, хурдан хүргэлт." />
+
+  <!-- Фонт -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ============================ ТОЛГОЙ ============================ -->
+  <header class="header" id="site-header">
+    <div class="container header__inner">
+      <a href="#top" class="logo" aria-label="Нүүр хуудас">
+        <span class="logo__mark" aria-hidden="true"></span>
+        <span class="logo__text">
+          <span class="logo__name" data-brand>Décante</span>
+          <span class="logo__sub">Үнэрийн ателье</span>
+        </span>
+      </a>
+
+      <nav class="nav" id="primary-nav" aria-label="Үндсэн цэс">
+        <a href="#products">Бүтээгдэхүүн</a>
+        <a href="#how">Хэрхэн ажилладаг</a>
+        <a href="#why">Яагаад декант</a>
+        <a href="#faq">Асуулт хариулт</a>
+        <a href="#order">Захиалга</a>
+      </nav>
+
+      <div class="header__actions">
+        <div id="account-area" class="account-area"></div>
+        <button type="button" class="cart-btn" data-action="open-cart" aria-label="Сагс нээх">
+          <span class="cart-btn__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M6 7h12l-1 13H7L6 7Z" stroke-linejoin="round"/>
+              <path d="M9 7a3 3 0 0 1 6 0" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="cart-btn__count" id="cart-count" hidden>0</span>
+        </button>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Цэс" aria-expanded="false" aria-controls="primary-nav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ============================ HERO ============================ -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__content">
+          <p class="hero__eyebrow">100% ориг үнэртэй ус</p>
+          <h1 class="hero__title">Тансаг үнэрийг<br /><em>жижиг савлагаагаар</em></h1>
+          <p class="hero__lead" data-tagline>Ориг үнэртэй ус — 5, 10, 20 мл жижиг савлагаагаар</p>
+          <p class="hero__desc">
+            Бүтэн шил авалгүйгээр дуртай үнэрээ туршиж, өдөр бүр зөөвөрлөж яваарай.
+            Бид ориг 100 мл савнаас ариун цэврийн нөхцөлд жижиглэн савладаг.
+          </p>
+          <div class="hero__cta">
+            <a href="#products" class="btn btn--solid btn--lg">Дэлгүүр үзэх</a>
+            <a href="#how" class="btn btn--ghost btn--lg">Хэрхэн ажилладаг вэ?</a>
+          </div>
+          <ul class="hero__stats">
+            <li><b>120+</b><span>Үнэрийн сонголт</span></li>
+            <li><b>3</b><span>Хэмжээ · 5/10/20мл</span></li>
+            <li><b>24ц</b><span>Хотод хүргэлт</span></li>
+          </ul>
+        </div>
+
+        <div class="hero__visual" aria-hidden="true">
+          <div class="hero__bottle hero__bottle--1"></div>
+          <div class="hero__bottle hero__bottle--2"></div>
+          <div class="hero__bottle hero__bottle--3"></div>
+          <div class="hero__glow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= ДАВУУ ТАЛ ========================= -->
+    <section class="features">
+      <div class="container features__grid">
+        <div class="feature">
+          <span class="feature__icon">✔</span>
+          <h3>100% Ориг</h3>
+          <p>Зөвхөн албан ёсны эх сурвалжийн ориг үнэртэй ус.</p>
+        </div>
+        <div class="feature">
+          <span class="feature__icon">₮</span>
+          <h3>Хямд эхлэл</h3>
+          <p>Бүтэн шил авалгүй бага үнээр туршиж үзэх боломж.</p>
+        </div>
+        <div class="feature">
+          <span class="feature__icon">✦</span>
+          <h3>Ариун савлагаа</h3>
+          <p>Стерильжүүлсэн атомайзер саванд халдваргүй савлана.</p>
+        </div>
+        <div class="feature">
+          <span class="feature__icon">➤</span>
+          <h3>Хурдан хүргэлт</h3>
+          <p>Улаанбаатар хотод 24 цагийн дотор гардуулна.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= КАТАЛОГ ========================= -->
+    <section class="section" id="products">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__eyebrow">Каталог</p>
+          <h2 class="section__title">Үнэртэй усны сонголт</h2>
+          <p class="section__sub">Хэмжээгээ сонгоод шууд сагслаарай — үнэ автоматаар шинэчлэгдэнэ.</p>
+        </header>
+
+        <!-- Шүүлтүүр -->
+        <div class="toolbar">
+          <div class="chips" id="filter-chips" role="group" aria-label="Ангилал">
+            <button type="button" class="filter-chip is-active" data-category="all" aria-pressed="true">Бүгд</button>
+            <button type="button" class="filter-chip" data-category="men" aria-pressed="false">Эрэгтэй</button>
+            <button type="button" class="filter-chip" data-category="women" aria-pressed="false">Эмэгтэй</button>
+            <button type="button" class="filter-chip" data-category="unisex" aria-pressed="false">Унисекс</button>
+            <button type="button" class="filter-chip" data-category="popular" aria-pressed="false">Эрэлттэй</button>
+          </div>
+          <div class="toolbar__right">
+            <div class="search">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><path d="m20 20-3-3" stroke-linecap="round"/>
+              </svg>
+              <input type="search" id="search" placeholder="Нэр, брэнд, нот хайх…" aria-label="Хайх" />
+            </div>
+            <select id="sort" class="select" aria-label="Эрэмбэлэх">
+              <option value="featured">Онцлох эхэндээ</option>
+              <option value="price-asc">Үнэ: багаас их</option>
+              <option value="price-desc">Үнэ: ихээс бага</option>
+              <option value="name">Нэрээр (А–Я)</option>
+              <option value="new">Шинэ эхэндээ</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="result-count" id="result-count" aria-live="polite"></p>
+
+        <!-- Бүтээгдэхүүн энд JS-ээр зурагдана -->
+        <div class="product-grid" id="product-grid"></div>
+
+        <div class="product-empty" id="product-empty" hidden>
+          <p>Илэрц олдсонгүй. Өөр түлхүүр үг эсвэл ангилал сонгож үзнэ үү.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ХЭРХЭН АЖИЛЛАДАГ ===================== -->
+    <section class="section section--alt" id="how">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__eyebrow">Үйл явц</p>
+          <h2 class="section__title">Хэрхэн ажилладаг вэ?</h2>
+          <p class="section__sub">Декант гэдэг нь ориг бүтэн шилээс жижиг саванд хувааж савлахыг хэлнэ.</p>
+        </header>
+
+        <ol class="steps">
+          <li class="step">
+            <span class="step__num">01</span>
+            <h3>Ориг эх сав</h3>
+            <p>Бид зөвхөн албан ёсны, баталгаат 100 мл ориг үнэртэй ус авдаг.</p>
+          </li>
+          <li class="step">
+            <span class="step__num">02</span>
+            <h3>Ариун савлагаа</h3>
+            <p>Стерильжүүлсэн багаж, шинэ атомайзер саванд халдваргүй нөхцөлд савлана.</p>
+          </li>
+          <li class="step">
+            <span class="step__num">03</span>
+            <h3>Хэмжээгээ сонго</h3>
+            <p>5 мл туршилт, 10 мл өдөр тутам, 20 мл хэмнэлттэй — өөрт таарахаа сонгоно.</p>
+          </li>
+          <li class="step">
+            <span class="step__num">04</span>
+            <h3>Хүргэлт</h3>
+            <p>Захиалгыг хотод 24 цагт, орон нутагт унаагаар шуурхай хүргэнэ.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ====================== ЯАГААД ДЕКАНТ ====================== -->
+    <section class="section" id="why">
+      <div class="container why">
+        <div class="why__media" aria-hidden="true">
+          <div class="why__big"></div>
+          <div class="why__arrow">→</div>
+          <div class="why__minis">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="why__content">
+          <p class="section__eyebrow">Яагаад декант?</p>
+          <h2 class="section__title">Бүтэн шил авахаас өмнө</h2>
+          <ul class="why__list">
+            <li><b>Мөнгө хэмнэнэ.</b> 200,000₮-ийн шил авалгүй 15,000₮-өөс туршиж эхэлнэ.</li>
+            <li><b>Арьсандаа тохируулна.</b> Үнэр хүн бүрийн арьсан дээр өөрөөр задардаг — эхлээд шалгаарай.</li>
+            <li><b>Аялалд төгс.</b> Жижиг сав цүнх, халаасанд багтах тул хаана ч авч явна.</li>
+            <li><b>Коллекц үүсгэнэ.</b> Нэг үнэрт баригдалгүй, өдөр бүр өөр үнэр түрхэх эрх чөлөө.</li>
+          </ul>
+          <a href="#products" class="btn btn--solid">Одоо туршаад үзье</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== СЭТГЭГДЭЛ ====================== -->
+    <section class="section section--alt" id="reviews">
+      <div class="container">
+        <header class="section__head">
+          <p class="section__eyebrow">Сэтгэгдэл</p>
+          <h2 class="section__title">Үйлчлүүлэгчид юу гэдэг вэ</h2>
+        </header>
+        <div class="reviews">
+          <figure class="review">
+            <div class="review__stars" aria-label="5 од">★★★★★</div>
+            <blockquote>Ориг байгаа нь мэдрэгдэж байна. 10мл нь надад яг таарлаа, үнэ бас боломжийн.</blockquote>
+            <figcaption>— Сарнай, Улаанбаатар</figcaption>
+          </figure>
+          <figure class="review">
+            <div class="review__stars" aria-label="5 од">★★★★★</div>
+            <blockquote>3 үнэр захиалаад маргааш нь гартаа авсан. Савлагаа нь цэвэрхэн, гоё.</blockquote>
+            <figcaption>— Бат, Дархан</figcaption>
+          </figure>
+          <figure class="review">
+            <div class="review__stars" aria-label="5 од">★★★★★</div>
+            <blockquote>Бүтэн шил авахаасаа өмнө туршиж үзэх нь үнэхээр ухаалаг шийдэл юм байна.</blockquote>
+            <figcaption>— Оюун, Эрдэнэт</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== АСУУЛТ ХАРИУЛТ ====================== -->
+    <section class="section" id="faq">
+      <div class="container container--narrow">
+        <header class="section__head">
+          <p class="section__eyebrow">FAQ</p>
+          <h2 class="section__title">Түгээмэл асуултууд</h2>
+        </header>
+
+        <div class="faq">
+          <div class="faq__item">
+            <button type="button" class="faq__q" aria-expanded="false">
+              Үнэртэй ус тань үнэхээр ориг мөн үү?
+              <span class="faq__ico" aria-hidden="true"></span>
+            </button>
+            <div class="faq__a"><p>Тийм. Бид зөвхөн албан ёсны, баталгаат эх сурвалжаас ориг 100 мл сав авч, түүнээсээ жижиглэн савладаг. Эх шилийг хүсвэл харуулна.</p></div>
+          </div>
+          <div class="faq__item">
+            <button type="button" class="faq__q" aria-expanded="false">
+              Жижиг саванд хэр удаан хадгалагдах вэ?
+              <span class="faq__ico" aria-hidden="true"></span>
+            </button>
+            <div class="faq__a"><p>Гэрэл, дулаанаас хол хадгалбал үнэ чанараа алдалгүй 1-2 жил хадгалагдана. Атомайзер сав нь агаар нэвтрүүлэхгүй тул үнэр удаан барина.</p></div>
+          </div>
+          <div class="faq__item">
+            <button type="button" class="faq__q" aria-expanded="false">
+              Аль хэмжээг сонговол дээр вэ?
+              <span class="faq__ico" aria-hidden="true"></span>
+            </button>
+            <div class="faq__a"><p>Шинэ үнэр бол <b>5 мл</b> туршилт, тогтмол хэрэглэдэг бол <b>10 мл</b>, дуртай үнэрээ хэмнэлттэй авах бол <b>20 мл</b>-ийг санал болгож байна.</p></div>
+          </div>
+          <div class="faq__item">
+            <button type="button" class="faq__q" aria-expanded="false">
+              Хэрхэн захиалж, төлбөрөө төлөх вэ?
+              <span class="faq__ico" aria-hidden="true"></span>
+            </button>
+            <div class="faq__a"><p>Барааг сагсалж, доорх захиалгын хэсгээс мэдээллээ бөглөөд мессенжерээр илгээнэ. Бид холбогдож баталгаажуулан, данс эсвэл гарт бэлнээр төлөх сонголтыг санал болгоно.</p></div>
+          </div>
+          <div class="faq__item">
+            <button type="button" class="faq__q" aria-expanded="false">
+              Хүргэлт хэрхэн явагддаг вэ?
+              <span class="faq__ico" aria-hidden="true"></span>
+            </button>
+            <div class="faq__a"><p><span data-free-over>120,000₮</span>-өөс дээш захиалгад хотод хүргэлт үнэгүй. Бусад тохиолдолд хотод 5,000₮, орон нутагт унаагаар илгээнэ.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== ЗАХИАЛГА ====================== -->
+    <section class="section section--order" id="order">
+      <div class="container order">
+        <div class="order__info">
+          <p class="section__eyebrow">Захиалга</p>
+          <h2 class="section__title">Захиалгаа өгөх</h2>
+          <p class="order__lead">Мэдээллээ бөглөхөд бид таны сагсны бараатай захиалгыг бэлдэж, мессенжерээр илгээхэд бэлэн болгоно.</p>
+          <ul class="order__contact">
+            <li><span>Утас</span><a href="tel:+97699112233" data-phone>9911-2233</a></li>
+            <li><span>И-мэйл</span><a href="#" data-email>hello@decante.mn</a></li>
+            <li><span>Хаяг</span><span data-address>Улаанбаатар, Сүхбаатар дүүрэг</span></li>
+            <li><span>Цаг</span><span data-hours>Даваа–Ням · 10:00–20:00</span></li>
+          </ul>
+          <div class="order__social">
+            <a href="#" data-facebook target="_blank" rel="noopener">Facebook</a>
+            <a href="#" data-instagram target="_blank" rel="noopener">Instagram</a>
+            <a href="#" data-messenger target="_blank" rel="noopener">Messenger</a>
+          </div>
+        </div>
+
+        <form class="order-form" id="order-form" novalidate>
+          <div class="field">
+            <label for="f-name">Нэр <span>*</span></label>
+            <input type="text" id="f-name" name="name" autocomplete="name" placeholder="Таны нэр" required />
+          </div>
+          <div class="field">
+            <label for="f-phone">Утас <span>*</span></label>
+            <input type="tel" id="f-phone" name="phone" autocomplete="tel" placeholder="9900-0000" required />
+          </div>
+          <div class="field">
+            <label for="f-address">Хүргэлтийн хаяг</label>
+            <input type="text" id="f-address" name="address" autocomplete="street-address" placeholder="Дүүрэг, хороо, байр, тоот" />
+          </div>
+          <div class="field">
+            <label for="f-note">Нэмэлт тэмдэглэл</label>
+            <textarea id="f-note" name="note" rows="3" placeholder="Хүргэх цаг, бэлэг боодол гэх мэт…"></textarea>
+          </div>
+          <button type="submit" class="btn btn--solid btn--lg btn--block">Захиалга үүсгэх</button>
+          <p class="order-form__hint">* Товч дарахад сагсанд байгаа бараатай захиалга үүснэ.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================ ФУТЕР ============================ -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__brand">
+        <span class="logo__name" data-brand>Décante</span>
+        <p>Ориг үнэртэй ус, жижиг савлагаагаар. Тансаг үнэрийг хүн бүрт хүртээмжтэйгээр.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Цэс</h4>
+        <a href="#products">Бүтээгдэхүүн</a>
+        <a href="#how">Хэрхэн ажилладаг</a>
+        <a href="#why">Яагаад декант</a>
+        <a href="#faq">Асуулт хариулт</a>
+      </div>
+      <div class="footer__col">
+        <h4>Холбоо барих</h4>
+        <a href="tel:+97699112233" data-phone>9911-2233</a>
+        <a href="#" data-email>hello@decante.mn</a>
+        <span data-address>Улаанбаатар</span>
+      </div>
+      <div class="footer__col">
+        <h4>Дагах</h4>
+        <a href="#" data-facebook target="_blank" rel="noopener">Facebook</a>
+        <a href="#" data-instagram target="_blank" rel="noopener">Instagram</a>
+        <a href="#" data-messenger target="_blank" rel="noopener">Messenger</a>
+      </div>
+    </div>
+    <div class="footer__bottom container">
+      <span>© <span data-year>2026</span> <span data-brand>Décante</span>. Бүх эрх хуулиар хамгаалагдсан.</span>
+      <span class="footer__note">Брэндийн нэрс нь тухайн эздийн өмч болно.</span>
+    </div>
+  </footer>
+
+  <!-- ======================= САГС (DRAWER) ======================= -->
+  <aside class="cart-drawer" id="cart-drawer" aria-hidden="true" aria-label="Худалдан авалтын сагс">
+    <header class="cart-drawer__head">
+      <div>
+        <h2>Сагс</h2>
+        <p id="cart-head-count" class="cart-drawer__count">Хоосон байна</p>
+      </div>
+      <button type="button" class="icon-btn" data-action="close-cart" aria-label="Хаах">✕</button>
+    </header>
+    <div class="cart-drawer__body" id="cart-body"></div>
+    <footer class="cart-drawer__foot" id="cart-footer" hidden></footer>
+  </aside>
+
+  <!-- ======================= MODAL ======================= -->
+  <div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__panel">
+      <button type="button" class="icon-btn modal__close" data-action="close-modal" aria-label="Хаах">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Бүрхүүл ба toast -->
+  <div class="overlay" id="overlay"></div>
+  <div class="toast-root" id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ======================= СКРИПТ ======================= -->
+  <!-- Ачаалах дараалал чухал: тохиргоо → туслах → API → өгөгдөл → сагс → UI → session → апп -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Хамаарал
+node_modules/
+
+# Өгөгдлийн сан (хэрэглэгчийн мэдээлэл, нууц үгийн хэш — repo-д оруулахгүй!)
+data/
+
+# Орчны нууц хувьсагч
+.env
+
+# Лог, түр файл
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude Code локал тохиргоо (хувийн)
+.claude/settings.local.json

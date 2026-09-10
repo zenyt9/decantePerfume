@@ -1,0 +1,249 @@
+/* =====================================================================
+   admin.css — Décante Админ самбарын загвар
+   (styles.css-ийн токен, товч, талбар, статусыг дахин ашиглана)
+   ===================================================================== */
+
+body.admin { background: #f3f1ec; }
+
+.ad-loading { padding: 80px; text-align: center; color: var(--muted); }
+
+/* ------------------------------------------------------------------ */
+/*  Нэвтрэх хаалга (login / no-access)                                 */
+/* ------------------------------------------------------------------ */
+.ad-gate {
+  min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: radial-gradient(900px 500px at 50% -10%, var(--gold-soft), transparent 60%), #f3f1ec;
+}
+.ad-gate__card {
+  width: 100%; max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 38px 34px;
+  text-align: center;
+}
+.ad-gate__logo { font-family: var(--font-display); font-size: 30px; margin-bottom: 4px; }
+.ad-gate__sub { color: var(--muted); margin: 0 0 24px; }
+.ad-gate__card form { display: grid; gap: 14px; text-align: left; }
+.ad-gate__back { display: inline-block; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.ad-gate__back:hover { color: var(--ink); }
+
+/* ------------------------------------------------------------------ */
+/*  Дээд мөр                                                           */
+/* ------------------------------------------------------------------ */
+.ad-topbar {
+  position: sticky; top: 0; z-index: 50;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  background: var(--ink-deep); color: #efe9df;
+}
+.ad-brand { display: flex; align-items: center; gap: 12px; }
+.ad-brand .logo__mark { width: 32px; height: 32px; }
+.ad-brand__name { font-family: var(--font-display); font-size: 20px; color: #fff; }
+.ad-brand__name em { font-style: normal; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-left: 4px; }
+.ad-topbar__right { display: flex; align-items: center; gap: 12px; }
+.ad-topbar__right .btn--text { color: #cdc5b8; }
+.ad-topbar__right .btn--text:hover { color: #fff; }
+.ad-topbar__right .btn--outline { color: #efe9df; border-color: rgba(255,255,255,.25); }
+.ad-topbar__right .btn--outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.4); }
+.ad-user { font-size: 14px; font-weight: 600; color: #fff; }
+
+/* ------------------------------------------------------------------ */
+/*  Байршил (sidebar + main)                                          */
+/* ------------------------------------------------------------------ */
+.ad-layout {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  align-items: start;
+  min-height: calc(100dvh - 64px);
+}
+.ad-sidebar {
+  position: sticky; top: 64px;
+  height: calc(100dvh - 64px);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 20px 14px;
+}
+.ad-nav { display: grid; gap: 4px; }
+.ad-nav__item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  background: none; border: none;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  font-size: 14.5px; font-weight: 500; color: var(--ink-soft);
+  transition: background .15s, color .15s;
+}
+.ad-nav__item:hover { background: var(--surface-2); color: var(--ink); }
+.ad-nav__item.is-active { background: var(--ink); color: #fff; }
+.ad-nav__ico { font-size: 15px; width: 18px; text-align: center; }
+
+.ad-main { padding: 30px 34px 60px; min-width: 0; }
+
+/* ------------------------------------------------------------------ */
+/*  Хуудасны толгой                                                    */
+/* ------------------------------------------------------------------ */
+.ad-page__head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.ad-page__title { font-size: 28px; }
+.ad-page__sub { color: var(--muted); margin: 4px 0 0; font-size: 14.5px; }
+
+/* ------------------------------------------------------------------ */
+/*  Статистик картууд                                                  */
+/* ------------------------------------------------------------------ */
+.ad-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px;
+}
+.ad-stat {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ad-stat__label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.ad-stat__value { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--ink); }
+.ad-stat__hint { font-size: 12.5px; color: var(--muted); }
+
+/* ------------------------------------------------------------------ */
+/*  Панель                                                             */
+/* ------------------------------------------------------------------ */
+.ad-panel {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); margin-bottom: 20px; overflow: hidden;
+}
+.ad-panel--pad { padding: 18px; }
+.ad-panel__title { font-family: var(--font-body); font-size: 15px; font-weight: 600; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+
+.ad-sbadges { display: flex; flex-wrap: wrap; gap: 20px; padding: 18px; }
+.ad-sbadge { display: flex; align-items: center; gap: 8px; }
+.ad-sbadge b { font-size: 18px; }
+
+/* ------------------------------------------------------------------ */
+/*  Хүснэгт                                                            */
+/* ------------------------------------------------------------------ */
+.ad-tablewrap { overflow-x: auto; }
+.ad-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ad-table th {
+  text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--muted); font-weight: 600;
+  padding: 12px 16px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+.ad-table td { padding: 13px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.ad-table tr:last-child td { border-bottom: none; }
+.ad-table--sm td, .ad-table--sm th { padding: 9px 12px; font-size: 13.5px; }
+.ad-empty { text-align: center; color: var(--muted); padding: 30px !important; }
+.ad-muted { color: var(--muted); font-size: 12.5px; }
+
+.ad-prod { display: flex; align-items: center; gap: 12px; }
+.ad-swatch { width: 30px; height: 30px; border-radius: 8px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.ad-prod__brand { display: block; font-size: 12.5px; color: var(--muted); }
+
+.tag {
+  display: inline-block; font-size: 11.5px; font-weight: 600;
+  padding: 3px 9px; border-radius: 100px; margin-right: 4px;
+  background: var(--surface-2); color: var(--ink-soft);
+}
+.tag--on { background: #e4efe0; color: #3a5a40; }
+.tag--off { background: #f0e2e0; color: #a8322c; }
+
+.ad-actions { white-space: nowrap; text-align: right; }
+.ad-del:hover { color: #a8322c; }
+
+/* ------------------------------------------------------------------ */
+/*  Статус select                                                      */
+/* ------------------------------------------------------------------ */
+.ad-status-select {
+  border: 1px solid var(--line-strong); border-radius: 100px;
+  padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+  background: var(--surface);
+}
+.ad-status-select.st-new { background: #e7eefc; color: #2f4a8f; border-color: #c9d8f5; }
+.ad-status-select.st-confirmed { background: #e4efe0; color: #3a5a40; border-color: #cbe0c4; }
+.ad-status-select.st-delivering { background: #fdf0d8; color: #8a6d1f; border-color: #f0dcae; }
+.ad-status-select.st-done { background: #e8e6ea; color: #4a4a52; border-color: #d6d3da; }
+.ad-status-select.st-cancelled { background: #fdecea; color: #a8322c; border-color: #f2cfcb; }
+
+/* ------------------------------------------------------------------ */
+/*  Modal ба форм                                                      */
+/* ------------------------------------------------------------------ */
+.ad-modal {
+  position: fixed; inset: 0; z-index: 250;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 24px; overflow-y: auto;
+  opacity: 0; visibility: hidden;
+  transition: opacity .22s var(--ease), visibility .22s;
+}
+.ad-modal[aria-hidden="false"] { opacity: 1; visibility: visible; }
+.ad-modal__panel {
+  position: relative; width: 100%; max-width: 620px;
+  background: var(--surface); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(14px); transition: transform .24s var(--ease);
+}
+.ad-modal[aria-hidden="false"] .ad-modal__panel { transform: translateY(0); }
+.ad-modal__close { position: absolute; top: 12px; right: 12px; z-index: 2; }
+
+.ad-form-wrap { padding: 32px; }
+.ad-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ad-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.ad-form-wrap .field { display: grid; gap: 6px; margin-bottom: 14px; }
+.ad-form-wrap .field label { font-size: 13.5px; font-weight: 600; }
+.ad-form-wrap input, .ad-form-wrap textarea, .ad-form-wrap select {
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--ink);
+  background: var(--bg); width: 100%; resize: vertical;
+}
+.ad-form-wrap input:focus, .ad-form-wrap textarea:focus, .ad-form-wrap select:focus {
+  outline: none; border-color: var(--gold); background: #fff;
+}
+.ad-form-wrap input[type="color"] { padding: 4px; height: 42px; cursor: pointer; }
+.ad-inline { align-items: end; }
+.ad-checks { display: flex; gap: 20px; align-items: center; padding-bottom: 8px; }
+.ad-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.ad-check input { width: auto; }
+.ad-form-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.ad-inline-form { display: flex; gap: 10px; }
+.ad-inline-form input {
+  flex: 1; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: 14px; background: var(--bg);
+}
+.ad-inline-form input:focus { outline: none; border-color: var(--gold); background: #fff; }
+
+/* Захиалгын дэлгэрэнгүй */
+.ad-order-head { display: flex; align-items: center; gap: 14px; }
+.ad-subhead { font-family: var(--font-body); font-size: 14px; margin: 22px 0 10px; color: var(--ink); }
+.ad-sum { margin: 16px 0; border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 6px; }
+.ad-sum > div { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-soft); }
+.ad-sum__total { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; font-size: 17px !important; color: var(--ink) !important; font-weight: 700; }
+
+/* Баталгаажуулах */
+.ad-confirm { padding: 30px; }
+.ad-confirm h3 { font-size: 20px; margin-bottom: 8px; }
+.ad-confirm p { color: var(--ink-soft); margin: 0; }
+.ad-danger-btn { background: #a8322c; }
+.ad-danger-btn:hover { background: #8a2823; }
+
+/* ------------------------------------------------------------------ */
+/*  Responsive                                                         */
+/* ------------------------------------------------------------------ */
+@media (max-width: 860px) {
+  .ad-layout { grid-template-columns: 1fr; }
+  .ad-sidebar {
+    position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line);
+    padding: 10px;
+  }
+  .ad-nav { grid-auto-flow: column; overflow-x: auto; }
+  .ad-nav__item { white-space: nowrap; }
+  .ad-stats { grid-template-columns: 1fr 1fr; }
+  .ad-main { padding: 22px 18px 50px; }
+}
+@media (max-width: 520px) {
+  .ad-stats { grid-template-columns: 1fr; }
+  .ad-grid2, .ad-grid3 { grid-template-columns: 1fr; }
+  .ad-form-wrap { padding: 24px 20px; }
+}
