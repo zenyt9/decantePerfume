@@ -80,6 +80,9 @@ Service → **Variables** → дараахыг нэм:
 | `SECURE_COOKIES` | `1` |
 | `ADMIN_EMAIL` | таны админ и-мэйл |
 | `ADMIN_PASSWORD` | **хүчтэй** нууц үг |
+| `RESEND_API_KEY` | `re_...` (и-мэйл илгээх) |
+| `MAIL_FROM` | `Décante <noreply@таныдомэйн>` |
+| `OWNER_EMAIL` | `decanteperfume71@gmail.com` (захиалга ирэх хаяг) |
 
 > `PORT`-ыг Railway өөрөө өгдөг тул **бүү нэм**.
 >
@@ -87,6 +90,16 @@ Service → **Variables** → дараахыг нэм:
 > Тиймээс эхний удаад л сайн нууц үг тавь.
 
 ---
+
+## 📧 И-мэйл (Resend) — нууц үг сэргээх, баталгаажуулах, захиалгын мэдэгдэл
+
+1. [resend.com](https://resend.com)-д бүртгүүлж, **API key** авах → `RESEND_API_KEY`.
+2. **⚠️ Тест горим:** `MAIL_FROM=Décante <onboarding@resend.dev>` бол и-мэйл нь зөвхөн
+   **Resend-д бүртгүүлсэн өөрийн хаяг руу** очно (бусад руу очихгүй).
+3. **Бодит хэрэглээ:** Resend → **Domains** → домэйнээ (decanteperfume.com) нэмж,
+   DNS бичлэгүүдийг тавьж баталгаажуулаад `MAIL_FROM=Décante <noreply@decanteperfume.com>`
+   болгоно. Ингэснээр **аль ч хэрэглэгч рүү** (үйлчлүүлэгчийн OTP, эзний мэдэгдэл) илгээнэ.
+4. `RESEND_API_KEY` тохируулаагүй бол код/мэдэгдэл серверийн **лог руу** гарна (хөгжүүлэлт).
 
 ## 5️⃣ Домэйн авах ба шалгах
 

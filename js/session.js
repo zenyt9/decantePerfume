@@ -49,7 +49,7 @@ PM.session = (function () {
   }
   async function register(data) {
     var r = await PM.api.post("/auth/register", data);
-    user = r.user; emit(); return user;
+    user = r.user; emit(); return r; // { user, needsVerification }
   }
   async function logout() {
     try { await PM.api.post("/auth/logout"); } catch (e) {}
@@ -58,6 +58,17 @@ PM.session = (function () {
   }
   async function updateProfile(patch) {
     var r = await PM.api.patch("/auth/me", patch);
+    user = r.user; emit(); return user;
+  }
+  function sendCode(purpose, email) {
+    return PM.api.post("/auth/send-code", { purpose: purpose, email: email });
+  }
+  async function confirmEmail(code) {
+    var r = await PM.api.post("/auth/verify-email", { code: code });
+    user = r.user; emit(); return user;
+  }
+  async function resetPassword(email, code, newPassword) {
+    var r = await PM.api.post("/auth/reset-password", { email: email, code: code, newPassword: newPassword });
     user = r.user; emit(); return user;
   }
 
@@ -135,6 +146,7 @@ PM.session = (function () {
           '<input type="email" name="email" autocomplete="email" required placeholder="tanii@mail.mn" /></div>' +
         '<div class="field"><label>Нууц үг</label>' +
           '<input type="password" name="password" autocomplete="current-password" required placeholder="••••••" /></div>' +
+        '<div class="auth__row"><button type="button" class="auth__link" data-auth-forgot>Нууц үгээ мартсан уу?</button></div>' +
         '<button type="submit" class="btn btn--solid btn--block">Нэвтрэх</button>' +
       "</form>"
     );
@@ -160,12 +172,19 @@ PM.session = (function () {
     if (el) { el.textContent = msg; el.hidden = !msg; }
   }
 
+  function runPending() {
+    var cb = pendingOnAuth; pendingOnAuth = null;
+    if (cb) cb();
+  }
+
   function wireAuth() {
     u.qsa("[data-auth-tab]").forEach(function (t) {
       t.addEventListener("click", function () {
         renderAuth(t.getAttribute("data-auth-tab"));
       });
     });
+    var forgot = u.qs("[data-auth-forgot]");
+    if (forgot) forgot.addEventListener("click", function () { openForgot(); });
 
     var form = u.qs("[data-auth-form]");
     if (!form) return;
@@ -174,25 +193,144 @@ PM.session = (function () {
       showAuthError("");
       var btn = form.querySelector('button[type="submit"]');
       btn.disabled = true;
+      var isLogin = form.getAttribute("data-auth-form") === "login";
       try {
-        if (form.getAttribute("data-auth-form") === "login") {
+        if (isLogin) {
           await login(form.email.value.trim(), form.password.value);
+          PM.modal.close();
+          u.toast("Тавтай морил, " + user.name.split(" ")[0] + "!", "success");
+          runPending();
         } else {
-          await register({
+          var r = await register({
             name: form.name.value.trim(),
             email: form.email.value.trim(),
             phone: form.phone.value.trim(),
             password: form.password.value,
           });
+          u.toast("Тавтай морил, " + user.name.split(" ")[0] + "!", "success");
+          if (r && r.needsVerification) {
+            openVerifyEmail(); // баталгаажуулсан/алгассаны дараа pending үйлдэл ажиллана
+          } else {
+            PM.modal.close();
+            runPending();
+          }
         }
-        PM.modal.close();
-        u.toast("Тавтай морил, " + (user.name.split(" ")[0]) + "!", "success");
-        var cb = pendingOnAuth; pendingOnAuth = null;
-        if (cb) cb();
       } catch (err) {
         showAuthError(err.message);
         btn.disabled = false;
       }
+    });
+  }
+
+  /* ---------------- И-мэйл баталгаажуулах ---------------- */
+  function openVerifyEmail() {
+    var email = user ? user.email : "";
+    var html =
+      '<div class="auth">' +
+        '<h3 class="modal__title">И-мэйл баталгаажуулах</h3>' +
+        '<p class="auth__note">Бид <b>' + esc(email) + '</b> хаяг руу 6 оронтой код илгээлээ. Кодоо оруулна уу.</p>' +
+        '<p class="auth__err" hidden></p>' +
+        '<form data-verify-form>' +
+          '<div class="field"><label>Баталгаажуулах код</label>' +
+            '<input name="code" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input" required /></div>' +
+          '<button type="submit" class="btn btn--solid btn--block">Баталгаажуулах</button>' +
+        '</form>' +
+        '<div class="auth__row auth__row--split">' +
+          '<button type="button" class="auth__link" data-resend>Код дахин илгээх</button>' +
+          '<button type="button" class="auth__link" data-skip>Дараа нь</button>' +
+        '</div>' +
+      '</div>';
+    PM.modal.open(html);
+    var form = u.qs("[data-verify-form]");
+    var errEl = u.qs(".auth .auth__err");
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      errEl.hidden = true;
+      var btn = form.querySelector("button"); btn.disabled = true;
+      try {
+        await confirmEmail(form.code.value.trim());
+        PM.modal.close();
+        u.toast("И-мэйл баталгаажлаа ✓", "success");
+        runPending();
+      } catch (err) { errEl.textContent = err.message; errEl.hidden = false; btn.disabled = false; }
+    });
+    u.qs("[data-skip]").addEventListener("click", function () {
+      PM.modal.close();
+      u.toast("И-мэйлээ дараа Профайлаас баталгаажуулж болно", "info");
+      runPending();
+    });
+    u.qs("[data-resend]").addEventListener("click", async function () {
+      try { await sendCode("verify"); u.toast("Код дахин илгээлээ", "success"); }
+      catch (err) { u.toast(err.message, "error"); }
+    });
+  }
+
+  /* ---------------- Нууц үг сэргээх ---------------- */
+  function openForgot() { renderForgotStep1(""); }
+
+  function renderForgotStep1(prefill) {
+    var html =
+      '<div class="auth">' +
+        '<h3 class="modal__title">Нууц үг сэргээх</h3>' +
+        '<p class="auth__note">Бүртгэлтэй и-мэйлээ оруулбал бид код илгээнэ.</p>' +
+        '<p class="auth__err" hidden></p>' +
+        '<form data-forgot-email>' +
+          '<div class="field"><label>И-мэйл</label>' +
+            '<input type="email" name="email" required placeholder="tanii@mail.mn" value="' + esc(prefill) + '" /></div>' +
+          '<button type="submit" class="btn btn--solid btn--block">Код авах</button>' +
+        '</form>' +
+        '<div class="auth__row"><button type="button" class="auth__link" data-back-login>← Нэвтрэх рүү</button></div>' +
+      '</div>';
+    PM.modal.open(html);
+    u.qs("[data-back-login]").addEventListener("click", function () { renderAuth("login"); });
+    var form = u.qs("[data-forgot-email]");
+    var errEl = u.qs(".auth .auth__err");
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      errEl.hidden = true;
+      var btn = form.querySelector("button"); btn.disabled = true;
+      var email = form.email.value.trim();
+      try { await sendCode("reset", email); renderForgotStep2(email); }
+      catch (err) { errEl.textContent = err.message; errEl.hidden = false; btn.disabled = false; }
+    });
+  }
+
+  function renderForgotStep2(email) {
+    var html =
+      '<div class="auth">' +
+        '<h3 class="modal__title">Шинэ нууц үг</h3>' +
+        '<p class="auth__note">Бид <b>' + esc(email) + '</b> руу код илгээлээ.</p>' +
+        '<p class="auth__err" hidden></p>' +
+        '<form data-forgot-reset>' +
+          '<div class="field"><label>Код</label>' +
+            '<input name="code" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input" required /></div>' +
+          '<div class="field"><label>Шинэ нууц үг</label>' +
+            '<input type="password" name="newPassword" minlength="6" placeholder="Дор хаяж 6 тэмдэгт" required /></div>' +
+          '<button type="submit" class="btn btn--solid btn--block">Нууц үг шинэчлэх</button>' +
+        '</form>' +
+        '<div class="auth__row auth__row--split">' +
+          '<button type="button" class="auth__link" data-resend-reset>Код дахин илгээх</button>' +
+          '<button type="button" class="auth__link" data-back-email>← Буцах</button>' +
+        '</div>' +
+      '</div>';
+    PM.modal.open(html);
+    u.qs("[data-back-email]").addEventListener("click", function () { renderForgotStep1(email); });
+    u.qs("[data-resend-reset]").addEventListener("click", async function () {
+      try { await sendCode("reset", email); u.toast("Код дахин илгээлээ", "success"); }
+      catch (err) { u.toast(err.message, "error"); }
+    });
+    var form = u.qs("[data-forgot-reset]");
+    var errEl = u.qs(".auth .auth__err");
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      errEl.hidden = true;
+      var btn = form.querySelector("button"); btn.disabled = true;
+      try {
+        await resetPassword(email, form.code.value.trim(), form.newPassword.value);
+        PM.modal.close();
+        u.toast("Нууц үг шинэчлэгдэж, нэвтэрлээ ✓", "success");
+        runPending();
+      } catch (err) { errEl.textContent = err.message; errEl.hidden = false; btn.disabled = false; }
     });
   }
 
@@ -208,6 +346,11 @@ PM.session = (function () {
             '<input type="text" name="name" value="' + esc(user.name) + '" required /></div>' +
           '<div class="field"><label>И-мэйл</label>' +
             '<input type="email" value="' + esc(user.email) + '" disabled /></div>' +
+          '<div class="profile__verify">' + (user.emailVerified
+            ? '<span class="verify-badge verify-badge--ok">✓ И-мэйл баталгаажсан</span>'
+            : '<span class="verify-badge">● И-мэйл баталгаажаагүй</span> ' +
+              '<button type="button" class="auth__link" data-verify-now>Баталгаажуулах</button>') +
+          '</div>' +
           '<div class="field"><label>Утас</label>' +
             '<input type="tel" name="phone" value="' + esc(user.phone || "") + '" placeholder="9900-0000" /></div>' +
           '<div class="field"><label>Хүргэлтийн хаяг</label>' +
@@ -222,6 +365,12 @@ PM.session = (function () {
         "</form>" +
       "</div>";
     PM.modal.open(html);
+
+    var vBtn = u.qs("[data-verify-now]");
+    if (vBtn) vBtn.addEventListener("click", async function () {
+      try { await sendCode("verify"); openVerifyEmail(); }
+      catch (err) { u.toast(err.message, "error"); }
+    });
 
     var form = u.qs("[data-profile-form]");
     form.addEventListener("submit", async function (e) {
