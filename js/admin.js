@@ -12,7 +12,7 @@
   var fmt = u.formatPrice;
   var esc = u.escapeHtml;
 
-  var SIZES = [5, 10, 20];
+  var SIZES = [5, 10, 20, 50, 100];
   var STATUS = {
     new:        { label: "Шинэ",         cls: "st-new" },
     confirmed:  { label: "Баталгаажсан", cls: "st-confirmed" },

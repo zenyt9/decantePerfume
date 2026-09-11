@@ -522,9 +522,9 @@ h1, h2, h3, h4 {
   min-height: 38px; line-height: 1.45;
 }
 
-.card__sizes { display: flex; gap: 7px; margin-bottom: 16px; }
+.card__sizes { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
 .size-chip {
-  flex: 1;
+  flex: 1 1 52px;
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--ink-soft);
@@ -920,7 +920,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 .note-row { display: grid; grid-template-columns: 96px 1fr; gap: 10px; font-size: 14.5px; }
 .note-row__title { color: var(--gold-dark); font-weight: 600; }
 .note-row__items { color: var(--ink-soft); }
-.qv__sizes { display: flex; gap: 8px; margin-bottom: 20px; }
+.qv__sizes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .qv__foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .qv__price { font-family: var(--font-display); font-size: 28px; font-weight: 600; }
 
