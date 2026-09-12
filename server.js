@@ -18,6 +18,10 @@ const { handleApi } = require("./lib/api");
 const ROOT = path.resolve(__dirname);
 const PORT = process.env.PORT || 4173;
 
+// Cache-busting хувилбар: сервер эхлэх бүрд (redeploy болгонд) шинэчлэгдэнэ.
+// HTML доторх css/js/assets линкүүдэд ?v=BUILD_ID нэмснээр хуучин кэш арилна.
+const BUILD_ID = Date.now().toString(36);
+
 /* Аюулгүй байдал: зөвхөн эдгээр газраас статик файл түгээнэ.
    (data/, lib/, server.js, db.json зэрэг хэзээ ч задрахгүй.) */
 const STATIC_ALLOW = /^\/(css|js|assets)\//;
@@ -79,7 +83,28 @@ function serveStatic(req, res, pathname) {
       res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
       return res.end("404 — олдсонгүй: " + rel);
     }
-    res.writeHead(200, { "Content-Type": MIME[path.extname(filePath)] || "application/octet-stream" });
+    const ext = path.extname(filePath);
+    const headers = { "Content-Type": MIME[ext] || "application/octet-stream" };
+
+    if (ext === ".html") {
+      // HTML-ийг үргэлж шинэ авна; локал css/js/assets линкүүдэд ?v=BUILD_ID шигтгэнэ
+      data = Buffer.from(
+        String(data).replace(
+          /(href|src)="((?:css|js|assets)\/[^"?]+)"/g,
+          '$1="$2?v=' + BUILD_ID + '"'
+        ),
+        "utf8"
+      );
+      headers["Cache-Control"] = "no-cache";
+    } else if (STATIC_ALLOW.test(rel)) {
+      // Хувилбартай статик файл (css/js/assets) — удаан кэшилж болно
+      headers["Cache-Control"] = "public, max-age=31536000";
+    } else {
+      // robots.txt, sitemap.xml, favicon зэрэг — богино
+      headers["Cache-Control"] = "no-cache";
+    }
+
+    res.writeHead(200, headers);
     res.end(data);
   });
 }

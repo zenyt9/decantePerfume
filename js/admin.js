@@ -224,7 +224,7 @@
       return '<tr>' +
         '<td><div class="ad-prod"><span class="ad-swatch" style="background:' + esc(p.accent || "#ccc") + '"></span>' +
           '<div><b>' + esc(p.name) + '</b><span class="ad-prod__brand">' + esc(p.brand) + " · " + genderLabel(p.gender) + "</span></div></div></td>" +
-        "<td>" + fmt(p.prices[5]) + " / " + fmt(p.prices[10]) + " / " + fmt(p.prices[20]) + "</td>" +
+        "<td>" + SIZES.map(function (s) { return fmt(p.prices[s]); }).join(" / ") + "</td>" +
         "<td>" + (p.popular ? '<span class="tag">Эрэлттэй</span>' : "") +
           (p.active === false ? '<span class="tag tag--off">Идэвхгүй</span>' : '<span class="tag tag--on">Идэвхтэй</span>') + "</td>" +
         '<td class="ad-actions">' +
@@ -237,7 +237,7 @@
       pageHead("Бүтээгдэхүүн", state.products.length + " бараа",
         '<button class="btn btn--solid btn--sm" data-ad="product-new">＋ Шинэ бараа</button>') +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-        "<th>Нэр</th><th>Үнэ (5/10/20мл)</th><th>Төлөв</th><th></th>" +
+        "<th>Нэр</th><th>Үнэ 5/10/20/50/100мл (₮)</th><th>Төлөв</th><th></th>" +
       "</tr></thead><tbody>" +
         (rows || '<tr><td colspan="4" class="ad-empty">Бараа алга.</td></tr>') +
       "</tbody></table></div></div>";
@@ -306,7 +306,7 @@
         popular: f.popular.checked,
         active: f.active.checked,
         description: f.description.value.trim(),
-        prices: { 5: Number(f.price5.value) || 0, 10: Number(f.price10.value) || 0, 20: Number(f.price20.value) || 0 },
+        prices: SIZES.reduce(function (o, s) { o[s] = Number(f["price" + s].value) || 0; return o; }, {}),
         notes: {
           top: splitNotes(f.top.value), heart: splitNotes(f.heart.value), base: splitNotes(f.base.value),
         },
