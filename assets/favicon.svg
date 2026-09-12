@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9a15e"/>
+      <stop offset="1" stop-color="#8c6d3f"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#1d1a16"/>
+  <!-- cap -->
+  <rect x="13" y="4" width="6" height="4" rx="1" fill="url(#g)"/>
+  <rect x="14" y="7.5" width="4" height="3" fill="url(#g)"/>
+  <!-- bottle body -->
+  <path d="M11 12 q5 -1.5 10 0 v11 a3 3 0 0 1 -3 3 h-4 a3 3 0 0 1 -3 -3 z" fill="url(#g)"/>
+  <!-- droplet highlight -->
+  <circle cx="16" cy="19" r="2.4" fill="#faf7f2" opacity="0.85"/>
+</svg>

@@ -21,7 +21,10 @@ const PORT = process.env.PORT || 4173;
 /* Аюулгүй байдал: зөвхөн эдгээр газраас статик файл түгээнэ.
    (data/, lib/, server.js, db.json зэрэг хэзээ ч задрахгүй.) */
 const STATIC_ALLOW = /^\/(css|js|assets)\//;
-const STATIC_FILES = new Set(["/index.html", "/admin.html", "/favicon.ico"]);
+const STATIC_FILES = new Set([
+  "/index.html", "/admin.html", "/favicon.ico",
+  "/robots.txt", "/sitemap.xml",
+]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -35,6 +38,8 @@ const MIME = {
   ".webp": "image/webp",
   ".ico": "image/x-icon",
   ".woff2": "font/woff2",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
 };
 
 /* ------------------------------------------------------------------ */

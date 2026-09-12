@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /$
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+
+Sitemap: https://decanteperfume.com/sitemap.xml
