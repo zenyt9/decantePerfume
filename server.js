@@ -46,6 +46,16 @@ function serveStatic(req, res, pathname) {
   if (rel === "/") rel = "/index.html";
   else if (rel === "/admin" || rel === "/admin/") rel = "/admin.html";
 
+  // Path traversal хамгаалалт: pathname нь decodeURIComponent хийгдсэн тул
+  // "%2e%2e%2f" мэт кодлол ".." болж задарсан байж болно. Ийм замыг эндээс
+  // татгалзана — allowlist regex болон path.relative шалгалт зөвхөн ROOT-оос
+  // ГАДАГШ гарахыг хориглодог тул ROOT доторх бусад файл (data/, lib/) руу
+  // "/assets/../lib/seed.js" мэтээр орохоос сэргийлнэ.
+  if (rel.indexOf("..") !== -1 || rel.indexOf("\0") !== -1) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    return res.end("404 — олдсонгүй");
+  }
+
   // Зөвшөөрөгдсөн эсэхийг шалгах
   if (!STATIC_FILES.has(rel) && !STATIC_ALLOW.test(rel)) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
