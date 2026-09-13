@@ -201,8 +201,17 @@
       ? recent.map(orderRowHTML).join("")
       : '<tr><td colspan="6" class="ad-empty">Захиалга алга байна.</td></tr>';
 
+    var quickNav =
+      '<div class="ad-quicknav">' +
+        '<button class="ad-qbtn ad-qbtn--solid" data-ad="product-new"><span class="ad-qbtn__ico">＋</span><b>Шинэ бараа нэмэх</b><em>Бүтээгдэхүүн оруулах</em></button>' +
+        '<button class="ad-qbtn" data-view="products"><span class="ad-qbtn__ico">🧴</span><b>Бүтээгдэхүүн</b><em>Засах / устгах</em></button>' +
+        '<button class="ad-qbtn" data-view="orders"><span class="ad-qbtn__ico">🧾</span><b>Захиалга</b><em>Хянах</em></button>' +
+        '<button class="ad-qbtn" data-view="brands"><span class="ad-qbtn__ico">✦</span><b>Брэнд</b><em>Удирдах</em></button>' +
+      "</div>";
     main().innerHTML =
-      pageHead("Хянах самбар", "Дэлгүүрийн ерөнхий байдал") +
+      pageHead("Хянах самбар", "Дэлгүүрийн ерөнхий байдал",
+        '<button class="btn btn--solid" data-ad="product-new">＋ Шинэ бараа нэмэх</button>') +
+      quickNav +
       '<div class="ad-stats">' + cards + "</div>" +
       '<div class="ad-panel"><h2 class="ad-panel__title">Нөөцлөл (Backup)</h2>' +
         '<p style="color:#6b7280;font-size:13px;margin:0 0 12px;line-height:1.5">' +

@@ -94,6 +94,28 @@ body.admin { background: #f3f1ec; }
 .ad-page__sub { color: var(--muted); margin: 4px 0 0; font-size: 14.5px; }
 
 /* ------------------------------------------------------------------ */
+/*  Хурдан цэс (нүүр хуудасны том товчнууд)                            */
+/* ------------------------------------------------------------------ */
+.ad-quicknav {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px;
+}
+.ad-qbtn {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 18px;
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+}
+.ad-qbtn:hover { border-color: var(--gold); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.ad-qbtn__ico { font-size: 22px; margin-bottom: 6px; }
+.ad-qbtn b { font-size: 15px; color: var(--ink); }
+.ad-qbtn em { font-style: normal; font-size: 12.5px; color: var(--muted); }
+.ad-qbtn--solid { background: var(--ink); border-color: var(--ink); }
+.ad-qbtn--solid b, .ad-qbtn--solid .ad-qbtn__ico { color: #fff; }
+.ad-qbtn--solid em { color: rgba(255,255,255,.72); }
+.ad-qbtn--solid:hover { background: var(--ink-deep); }
+
+/* ------------------------------------------------------------------ */
 /*  Статистик картууд                                                  */
 /* ------------------------------------------------------------------ */
 .ad-stats {
@@ -240,10 +262,12 @@ body.admin { background: #f3f1ec; }
   .ad-nav { grid-auto-flow: column; overflow-x: auto; }
   .ad-nav__item { white-space: nowrap; }
   .ad-stats { grid-template-columns: 1fr 1fr; }
+  .ad-quicknav { grid-template-columns: 1fr 1fr; }
   .ad-main { padding: 22px 18px 50px; }
 }
 @media (max-width: 520px) {
   .ad-stats { grid-template-columns: 1fr; }
+  .ad-quicknav { grid-template-columns: 1fr; }
   .ad-grid2, .ad-grid3 { grid-template-columns: 1fr; }
   .ad-form-wrap { padding: 24px 20px; }
 }
