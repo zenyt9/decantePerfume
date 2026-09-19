@@ -1298,3 +1298,27 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 .legal__body p { margin: 0 0 13px; }
 .legal__body p:last-child { margin-bottom: 0; }
 .legal__body b { color: var(--ink); }
+
+/* Нөөц дууссан */
+.card__badge--out { background: rgba(0,0,0,.62); color: #fff; }
+.card.is-sold-out .card__media { opacity: .48; }
+.card.is-sold-out .prod-img, .card.is-sold-out .bottle { filter: grayscale(.55); }
+.card__add:disabled { background: var(--surface-2); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+
+/* Дэлгэрэнгүй — нөөц + төстэй үнэртнүүд */
+.qv__stock { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 12px; }
+.qv__stock--out { color: #e07564; font-weight: 600; }
+.qv__stock b { color: var(--ink); }
+.qv__similar { grid-column: 1 / -1; margin-top: 4px; padding: 22px 36px 32px; border-top: 1px solid var(--line); }
+.qv__similar-title { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+.qv__sim-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.qv-sim { display: flex; flex-direction: column; gap: 5px; text-align: left; background: transparent; border: 1px solid var(--line); border-radius: 11px; padding: 9px; cursor: pointer; transition: border-color .15s, transform .12s; }
+.qv-sim:hover { border-color: var(--gold); transform: translateY(-2px); }
+.qv-sim__media { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface)); }
+.qv-sim__media .bottle, .qv-sim__media .prod-img { width: 54%; }
+.qv-sim__name { font-size: 12.5px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qv-sim__price { font-size: 11.5px; color: var(--muted); }
+@media (max-width: 560px) {
+  .qv__sim-grid { grid-template-columns: repeat(2, 1fr); }
+  .qv__similar { padding: 20px 26px 28px; }
+}

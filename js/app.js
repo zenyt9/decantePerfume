@@ -89,6 +89,10 @@
     var ml = Number(container.getAttribute("data-size"));
     var product = PM.products.getById(id);
     if (!product) return;
+    if (PM.products.stockInfo(product).soldOut) {
+      u.toast("Уучлаарай, энэ бараа дууссан байна", "error");
+      return;
+    }
 
     if (!PM.session.isAuthed()) {
       PM.session.openAuth({

@@ -92,14 +92,20 @@ PM.ui = (function () {
 
   function productCard(product) {
     var sel = PM.CONFIG.defaultSize;
-    var badge = PM.products.hasDiscount(product)
-      ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>"
-      : (product.popular ? '<span class="card__badge">Эрэлттэй</span>' : "");
+    var soldOut = PM.products.stockInfo(product).soldOut;
+    var badge = soldOut
+      ? '<span class="card__badge card__badge--out">Дууссан</span>'
+      : (PM.products.hasDiscount(product)
+        ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>"
+        : (product.popular ? '<span class="card__badge">Эрэлттэй</span>' : ""));
     var conc = product.concentration
       ? " · <span class=\"card__conc\">" + esc(product.concentration) + "</span>" : "";
+    var addBtn = soldOut
+      ? '<button type="button" class="btn btn--solid card__add" disabled>Дууссан</button>'
+      : '<button type="button" class="btn btn--solid card__add" data-action="add">Сагслах</button>';
 
     return (
-      '<article class="card" data-id="' + esc(product.id) + '" data-size="' + sel + '">' +
+      '<article class="card' + (soldOut ? " is-sold-out" : "") + '" data-id="' + esc(product.id) + '" data-size="' + sel + '">' +
         '<div class="card__media" style="--accent:' + esc(product.accent) + '">' +
           badge +
           productMedia(product) +
@@ -116,9 +122,7 @@ PM.ui = (function () {
           "</div>" +
           '<div class="card__foot">' +
             '<span class="card__price" data-role="price">' + priceMarkup(product, sel) + "</span>" +
-            '<button type="button" class="btn btn--solid card__add" data-action="add">' +
-              "Сагслах" +
-            "</button>" +
+            addBtn +
           "</div>" +
         "</div>" +
       "</article>"
@@ -257,14 +261,46 @@ PM.ui = (function () {
     );
   }
 
+  function similarBlock(product) {
+    var pool = PM.products.items.filter(function (p) {
+      return p.id !== product.id && p.active !== false;
+    });
+    var sameG = pool.filter(function (p) { return p.gender === product.gender; });
+    var pick = (sameG.length >= 3 ? sameG : pool).slice(0, 4);
+    if (!pick.length) return "";
+    return (
+      '<div class="qv__similar">' +
+        '<p class="qv__similar-title">Төстэй үнэртнүүд</p>' +
+        '<div class="qv__sim-grid">' +
+          pick.map(function (p) {
+            return '<button type="button" class="qv-sim" data-action="quickview" data-id="' + esc(p.id) + '">' +
+              '<span class="qv-sim__media" style="--accent:' + esc(p.accent) + '">' + productMedia(p) + "</span>" +
+              '<span class="qv-sim__name">' + esc(p.name) + "</span>" +
+              '<span class="qv-sim__price">' + fmt(PM.products.minPrice(p)) + "-с</span>" +
+            "</button>";
+          }).join("") +
+        "</div>" +
+      "</div>"
+    );
+  }
+
   function renderQuickView(product) {
     var sel = PM.CONFIG.defaultSize;
+    var st = PM.products.stockInfo(product);
+    var stockLine = st.soldOut
+      ? '<p class="qv__stock qv__stock--out">Одоогоор дууссан</p>'
+      : (st.tracked && st.left <= 5 ? '<p class="qv__stock">Үлдсэн: <b>' + st.left + "</b> ширхэг</p>" : "");
+    var addBtn = st.soldOut
+      ? '<button type="button" class="btn btn--solid" disabled>Дууссан</button>'
+      : '<button type="button" class="btn btn--solid" data-action="add-modal">Сагслах</button>';
 
     var html =
       '<div class="qv" data-id="' + esc(product.id) + '" data-size="' + sel + '">' +
         '<div class="qv__media" style="--accent:' + esc(product.accent) + '">' +
-          (PM.products.hasDiscount(product)
-            ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>" : "") +
+          (st.soldOut
+            ? '<span class="card__badge card__badge--out">Дууссан</span>'
+            : (PM.products.hasDiscount(product)
+              ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>" : "")) +
           productMedia(product) +
         "</div>" +
         '<div class="qv__body">' +
@@ -282,13 +318,13 @@ PM.ui = (function () {
           '<div class="qv__sizes" role="group" aria-label="Хэмжээ сонгох">' +
             sizeChips(product, sel) +
           "</div>" +
+          stockLine +
           '<div class="qv__foot">' +
             '<span class="qv__price" data-role="price">' + priceMarkup(product, sel) + "</span>" +
-            '<button type="button" class="btn btn--solid" data-action="add-modal">' +
-              "Сагслах" +
-            "</button>" +
+            addBtn +
           "</div>" +
         "</div>" +
+        similarBlock(product) +
       "</div>";
     PM.modal.open(html, { wide: true });
   }

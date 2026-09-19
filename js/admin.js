@@ -255,7 +255,7 @@
   function openProductForm(product) {
     var isEdit = !!product;
     var p = product || { name: "", brand: "", gender: "unisex", accent: "#8a6d3f", year: "",
-      popular: false, active: true, description: "", image: "", concentration: "", discount: 0,
+      popular: false, active: true, description: "", image: "", concentration: "", discount: 0, stock: "",
       prices: {}, notes: { top: [], heart: [], base: [] } };
 
     var brandOptions = state.brands.map(function (b) {
@@ -291,7 +291,10 @@
             "</select></div>" +
             '<div class="field"><label>Хямдрал (%)</label><input type="number" name="discount" min="0" max="90" value="' + (p.discount || "") + '" placeholder="0" /></div>' +
           "</div>" +
-          '<div class="field"><label>Зургийн холбоос (URL) — сонголтоор</label><input name="image" value="' + esc(p.image || "") + '" placeholder="https://... (хоосон бол өнгөт флакон харагдана)" /></div>' +
+          '<div class="ad-grid2">' +
+            '<div class="field"><label>Зургийн холбоос (URL)</label><input name="image" value="' + esc(p.image || "") + '" placeholder="https://... (хоосон = флакон)" /></div>' +
+            '<div class="field"><label>Нөөц (ширхэг)</label><input type="number" name="stock" min="0" value="' + (p.stock === "" || p.stock == null ? "" : p.stock) + '" placeholder="хоосон = хязгааргүй" /></div>' +
+          "</div>" +
           '<div class="ad-grid3">' + priceInputs + "</div>" +
           '<div class="field"><label>Дээд нот (таслалаар)</label><input name="top" value="' + esc((p.notes.top || []).join(", ")) + '" /></div>' +
           '<div class="field"><label>Зүрхэн нот (таслалаар)</label><input name="heart" value="' + esc((p.notes.heart || []).join(", ")) + '" /></div>' +
@@ -328,6 +331,7 @@
         image: f.image.value.trim(),
         concentration: f.concentration.value,
         discount: Number(f.discount.value) || 0,
+        stock: f.stock.value.trim() === "" ? "" : Math.max(0, Number(f.stock.value) || 0),
         prices: SIZES.reduce(function (o, s) { o[s] = Number(f["price" + s].value) || 0; return o; }, {}),
         notes: {
           top: splitNotes(f.top.value), heart: splitNotes(f.heart.value), base: splitNotes(f.base.value),

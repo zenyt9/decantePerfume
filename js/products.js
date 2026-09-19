@@ -42,6 +42,14 @@ PM.products = (function () {
     return d > 0 ? Math.round(base * (100 - d) / 100) : base;
   }
 
+  /** Нөөцийн мэдээлэл: tracked (тоо тавьсан эсэх), left (үлдэгдэл), soldOut */
+  function stockInfo(product) {
+    var s = product ? product.stock : "";
+    var tracked = s !== "" && s !== null && s !== undefined;
+    var left = tracked ? Math.max(0, Math.round(Number(s) || 0)) : Infinity;
+    return { tracked: tracked, left: left, soldOut: tracked && left <= 0 };
+  }
+
   /** id-гаар бүтээгдэхүүн олох */
   function getById(id) {
     for (var i = 0; i < items.length; i++) {
@@ -78,6 +86,7 @@ PM.products = (function () {
     originalPriceOf: originalPriceOf,
     discountPct: discountPct,
     hasDiscount: hasDiscount,
+    stockInfo: stockInfo,
     getById: getById,
     minPrice: minPrice,
   };
