@@ -20,6 +20,8 @@
 
     if (filterState.category === "popular") {
       list = list.filter(function (p) { return p.popular; });
+    } else if (filterState.category === "sale") {
+      list = list.filter(function (p) { return PM.products.hasDiscount(p); });
     } else if (filterState.category !== "all") {
       list = list.filter(function (p) { return p.gender === filterState.category; });
     }
@@ -59,7 +61,7 @@
       c.setAttribute("aria-pressed", String(on));
     });
     var priceEl = u.qs('[data-role="price"]', container);
-    if (priceEl) priceEl.textContent = u.formatPrice(PM.products.priceOf(product, ml));
+    if (priceEl) priceEl.innerHTML = PM.ui.priceMarkup(product, ml);
   }
 
   /* ================================================================== */

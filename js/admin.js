@@ -255,7 +255,8 @@
   function openProductForm(product) {
     var isEdit = !!product;
     var p = product || { name: "", brand: "", gender: "unisex", accent: "#8a6d3f", year: "",
-      popular: false, active: true, description: "", prices: {}, notes: { top: [], heart: [], base: [] } };
+      popular: false, active: true, description: "", image: "", concentration: "", discount: 0,
+      prices: {}, notes: { top: [], heart: [], base: [] } };
 
     var brandOptions = state.brands.map(function (b) {
       return '<option value="' + esc(b.name) + '"></option>';
@@ -282,6 +283,15 @@
             "</select></div>" +
             '<div class="field"><label>Гарсан он</label><input type="number" name="year" value="' + esc(p.year || "") + '" /></div>' +
           "</div>" +
+          '<div class="ad-grid2">' +
+            '<div class="field"><label>Концентраци</label><select name="concentration">' +
+              opt("", "— сонгох —", p.concentration) + opt("EDP", "EDP (Eau de Parfum)", p.concentration) +
+              opt("EDT", "EDT (Eau de Toilette)", p.concentration) + opt("EDC", "EDC", p.concentration) +
+              opt("Parfum", "Parfum", p.concentration) + opt("Extrait", "Extrait", p.concentration) +
+            "</select></div>" +
+            '<div class="field"><label>Хямдрал (%)</label><input type="number" name="discount" min="0" max="90" value="' + (p.discount || "") + '" placeholder="0" /></div>' +
+          "</div>" +
+          '<div class="field"><label>Зургийн холбоос (URL) — сонголтоор</label><input name="image" value="' + esc(p.image || "") + '" placeholder="https://... (хоосон бол өнгөт флакон харагдана)" /></div>' +
           '<div class="ad-grid3">' + priceInputs + "</div>" +
           '<div class="field"><label>Дээд нот (таслалаар)</label><input name="top" value="' + esc((p.notes.top || []).join(", ")) + '" /></div>' +
           '<div class="field"><label>Зүрхэн нот (таслалаар)</label><input name="heart" value="' + esc((p.notes.heart || []).join(", ")) + '" /></div>' +
@@ -315,6 +325,9 @@
         popular: f.popular.checked,
         active: f.active.checked,
         description: f.description.value.trim(),
+        image: f.image.value.trim(),
+        concentration: f.concentration.value,
+        discount: Number(f.discount.value) || 0,
         prices: SIZES.reduce(function (o, s) { o[s] = Number(f["price" + s].value) || 0; return o; }, {}),
         notes: {
           top: splitNotes(f.top.value), heart: splitNotes(f.heart.value), base: splitNotes(f.base.value),

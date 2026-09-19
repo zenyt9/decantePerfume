@@ -46,6 +46,27 @@ PM.ui = (function () {
     );
   }
 
+  /** Барааны зураг — image байвал фото, үгүй бол SVG флакон */
+  function productMedia(product) {
+    if (product.image) {
+      return '<img class="prod-img" src="' + esc(product.image) + '" ' +
+        'alt="' + esc(product.brand + " " + product.name) + '" loading="lazy" ' +
+        'onerror="this.style.display=\'none\'" />';
+    }
+    return bottleSVG(product);
+  }
+
+  /** Үнийн HTML — хямдралтай бол хассан үнэ + шинэ үнэ */
+  function priceMarkup(product, ml) {
+    var price = PM.products.priceOf(product, ml);
+    if (PM.products.hasDiscount(product)) {
+      var orig = PM.products.originalPriceOf(product, ml);
+      return '<s class="price-old">' + fmt(orig) + "</s>" +
+        '<span class="price-now">' + fmt(price) + "</span>";
+    }
+    return fmt(price);
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Хэмжээ сонгогч (5 / 10 / 20 мл товчнууд)                            */
   /* ------------------------------------------------------------------ */
@@ -71,28 +92,30 @@ PM.ui = (function () {
 
   function productCard(product) {
     var sel = PM.CONFIG.defaultSize;
-    var price = PM.products.priceOf(product, sel);
-    var badge = product.popular
-      ? '<span class="card__badge">Эрэлттэй</span>' : "";
+    var badge = PM.products.hasDiscount(product)
+      ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>"
+      : (product.popular ? '<span class="card__badge">Эрэлттэй</span>' : "");
+    var conc = product.concentration
+      ? " · <span class=\"card__conc\">" + esc(product.concentration) + "</span>" : "";
 
     return (
       '<article class="card" data-id="' + esc(product.id) + '" data-size="' + sel + '">' +
         '<div class="card__media" style="--accent:' + esc(product.accent) + '">' +
           badge +
-          bottleSVG(product) +
+          productMedia(product) +
           '<button type="button" class="card__quickview" data-action="quickview" ' +
             'aria-label="Дэлгэрэнгүй харах">Дэлгэрэнгүй</button>' +
         "</div>" +
         '<div class="card__body">' +
           '<p class="card__brand">' + esc(product.brand) +
-            ' · <span class="card__gender">' + genderLabel(product.gender) + "</span></p>" +
+            ' · <span class="card__gender">' + genderLabel(product.gender) + "</span>" + conc + "</p>" +
           '<h3 class="card__name">' + esc(product.name) + "</h3>" +
           '<p class="card__notes">' + esc(topNotesLine(product)) + "</p>" +
           '<div class="card__sizes" role="group" aria-label="Хэмжээ сонгох">' +
             sizeChips(product, sel) +
           "</div>" +
           '<div class="card__foot">' +
-            '<span class="card__price" data-role="price">' + fmt(price) + "</span>" +
+            '<span class="card__price" data-role="price">' + priceMarkup(product, sel) + "</span>" +
             '<button type="button" class="btn btn--solid card__add" data-action="add">' +
               "Сагслах" +
             "</button>" +
@@ -133,7 +156,7 @@ PM.ui = (function () {
     return (
       '<li class="cart-line" data-id="' + esc(li.id) + '" data-size="' + li.ml + '">' +
         '<div class="cart-line__thumb" style="--accent:' + esc(p.accent) + '">' +
-          bottleSVG(p) +
+          productMedia(p) +
         "</div>" +
         '<div class="cart-line__info">' +
           '<p class="cart-line__name">' + esc(p.name) +
@@ -236,16 +259,18 @@ PM.ui = (function () {
 
   function renderQuickView(product) {
     var sel = PM.CONFIG.defaultSize;
-    var price = PM.products.priceOf(product, sel);
 
     var html =
       '<div class="qv" data-id="' + esc(product.id) + '" data-size="' + sel + '">' +
         '<div class="qv__media" style="--accent:' + esc(product.accent) + '">' +
-          bottleSVG(product) +
+          (PM.products.hasDiscount(product)
+            ? '<span class="card__badge card__badge--sale">−' + PM.products.discountPct(product) + "%</span>" : "") +
+          productMedia(product) +
         "</div>" +
         '<div class="qv__body">' +
           '<p class="qv__brand">' + esc(product.brand) + " · " +
             genderLabel(product.gender) +
+            (product.concentration ? " · " + esc(product.concentration) : "") +
             (product.year ? " · " + product.year : "") + "</p>" +
           '<h3 class="qv__name">' + esc(product.name) + "</h3>" +
           '<p class="qv__desc">' + esc(product.description) + "</p>" +
@@ -258,7 +283,7 @@ PM.ui = (function () {
             sizeChips(product, sel) +
           "</div>" +
           '<div class="qv__foot">' +
-            '<span class="qv__price" data-role="price">' + fmt(price) + "</span>" +
+            '<span class="qv__price" data-role="price">' + priceMarkup(product, sel) + "</span>" +
             '<button type="button" class="btn btn--solid" data-action="add-modal">' +
               "Сагслах" +
             "</button>" +
@@ -333,6 +358,8 @@ PM.ui = (function () {
 
   return {
     bottleSVG: bottleSVG,
+    productMedia: productMedia,
+    priceMarkup: priceMarkup,
     renderProducts: renderProducts,
     renderCart: renderCart,
     renderQuickView: renderQuickView,

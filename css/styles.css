@@ -1285,3 +1285,31 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   background: #fdecea; padding: 4px 11px; border-radius: 100px;
 }
 .verify-badge--ok { color: #3a5a40; background: #e4efe0; }
+
+/* ==================================================================== */
+/*  23. Мерчандайз — зураг, хямдрал, концентраци                         */
+/* ==================================================================== */
+/* Бодит бүтээгдэхүүний зураг (image байвал флаконы оронд) */
+.prod-img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  padding: 6%;
+}
+.cart-line__thumb .prod-img { padding: 2%; }
+
+/* Хямдралын badge (картын медиа буланд) */
+.card__badge--sale {
+  background: #c0392b; color: #fff; font-weight: 700; letter-spacing: .02em;
+}
+
+/* Концентраци (брэнд мөрөнд EDP/EDT) */
+.card__conc { font-weight: 700; letter-spacing: .02em; color: #8a6d3f; }
+
+/* Хямдралтай үнэ — хассан анхны үнэ + шинэ үнэ */
+.price-old {
+  text-decoration: line-through; color: var(--muted, #98918a);
+  font-size: .78em; font-weight: 500; margin-right: 7px;
+}
+.price-now { color: #c0392b; font-weight: 700; }
+
+/* "Хямдрал" шүүлтийн товч */
+.filter-chip--sale:not(.is-active) { color: #c0392b; }

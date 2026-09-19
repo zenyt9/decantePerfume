@@ -23,9 +23,23 @@ PM.products = (function () {
     return items;
   }
 
-  /** Тухайн бүтээгдэхүүн, хэмжээ (мл)-ийн үнэ */
-  function priceOf(product, ml) {
+  /** Хямдралын хувь (0–90). 0 бол хямдралгүй. */
+  function discountPct(product) {
+    var d = product ? Math.round(Number(product.discount) || 0) : 0;
+    return d > 0 && d < 100 ? d : 0;
+  }
+  function hasDiscount(product) { return discountPct(product) > 0; }
+
+  /** Анхны (хямдралгүй) үнэ */
+  function originalPriceOf(product, ml) {
     return product && product.prices && product.prices[ml] != null ? product.prices[ml] : 0;
+  }
+
+  /** Худалдах үнэ — хямдрал байвал хассан үнэ */
+  function priceOf(product, ml) {
+    var base = originalPriceOf(product, ml);
+    var d = discountPct(product);
+    return d > 0 ? Math.round(base * (100 - d) / 100) : base;
   }
 
   /** id-гаар бүтээгдэхүүн олох */
@@ -52,6 +66,7 @@ PM.products = (function () {
     { key: "women",   label: "Эмэгтэй" },
     { key: "unisex",  label: "Унисекс" },
     { key: "popular", label: "Эрэлттэй" },
+    { key: "sale",    label: "Хямдрал" },
   ];
 
   return {
@@ -60,6 +75,9 @@ PM.products = (function () {
     categories: categories,
     load: load,
     priceOf: priceOf,
+    originalPriceOf: originalPriceOf,
+    discountPct: discountPct,
+    hasDiscount: hasDiscount,
     getById: getById,
     minPrice: minPrice,
   };
