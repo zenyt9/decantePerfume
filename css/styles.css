@@ -29,23 +29,23 @@
 /* ------------------------------------------------------------------ */
 :root {
   /* Өнгө */
-  --bg:            #faf7f2;   /* дулаан цайвар суурь */
-  --surface:       #ffffff;
-  --surface-2:     #f4efe7;
-  --ink:           #1d1a16;   /* үндсэн бараан текст */
-  --ink-soft:      #58514a;
-  --muted:         #8a8178;
-  --line:          #e8e0d4;
-  --line-strong:   #d8cdba;
+  --bg:            #0d0d0f;   /* бараан суурь */
+  --surface:       #16171b;   /* картууд, панель */
+  --surface-2:     #1d1e23;
+  --ink:           #f1eee7;   /* үндсэн цайвар текст */
+  --ink-soft:      #cdc7bd;
+  --muted:         #8b847a;
+  --line:          rgba(255,255,255,.09);
+  --line-strong:   rgba(255,255,255,.17);
 
-  --gold:          #b08d57;   /* үндсэн акцент */
-  --gold-dark:     #8c6d3f;
-  --gold-soft:     #ece0cd;
-  --rose:          #c98a7d;
-  --ink-deep:      #17140f;   /* футер, hero бараан хэсэг */
+  --gold:          #c9a84c;   /* үндсэн акцент */
+  --gold-dark:     #dcc079;   /* тодотгол алт (дарк дээр цайвар) */
+  --gold-soft:     rgba(201,168,76,.13);
+  --rose:          #d99a8e;
+  --ink-deep:      #08080a;   /* футер, features хамгийн бараан */
 
   /* Фонт */
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
   --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Зай, радиус, сүүдэр */
@@ -53,9 +53,9 @@
   --radius:    14px;
   --radius-sm: 9px;
   --radius-lg: 22px;
-  --shadow-sm: 0 1px 2px rgba(29, 26, 22, .06), 0 2px 8px rgba(29, 26, 22, .05);
-  --shadow-md: 0 6px 20px rgba(29, 26, 22, .10);
-  --shadow-lg: 0 20px 50px rgba(29, 26, 22, .18);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .28);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, .42);
+  --shadow-lg: 0 22px 55px rgba(0, 0, 0, .55);
   --ease: cubic-bezier(.4, 0, .2, 1);
 
   --header-h: 74px;
@@ -74,9 +74,8 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--ink);
-  /* Ерөнхий дэвсгэр: дээрээс доош цэнхэр → нил ягаан → ягаан */
-  background: linear-gradient(180deg,
-    #5b6ef6 0%, #7c63ea 26%, #a35cd8 52%, #cf5ccb 77%, #f56fc0 100%);
+  /* Ерөнхий дэвсгэр: премиум бараан */
+  background: var(--bg);
   background-repeat: no-repeat;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -1181,89 +1180,66 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 /*  тунгалаг болгоно. Картууд цагаан хэвээр (уншихад тохиромжтой).       */
 /* ==================================================================== */
 
-/* --- Хэсгүүдийг тунгалаг болгож градиентийг харуулах --- */
-.section--alt,
-.section--order { background: transparent; }
+/* Токен дарк болсон тул ихэнх нь автоматаар зохицдог. Энд цайвар темийн
+   хатуу (hardcoded) өнгө ашигласан компонентуудыг дарк+алт болгоно. */
 
-/* --- Дэвсгэр дээрх гарчиг, дэд текстийг цайвар --- */
-.section__title { color: #fff; }
-.section__sub { color: rgba(255, 255, 255, .88); }
-.section__eyebrow { color: #ffe3ad; }
-.result-count { color: rgba(255, 255, 255, .85); }
+/* --- Товч --- */
+.btn--solid { background: var(--gold); color: #16130a; }
+.btn--solid:hover { background: var(--gold-dark); box-shadow: 0 8px 22px rgba(201,168,76,.3); }
+.btn--ghost { background: rgba(255,255,255,.06); color: var(--ink); border-color: var(--line-strong); }
+.btn--ghost:hover { background: rgba(255,255,255,.12); border-color: var(--gold); }
 
-/* --- Hero --- */
-.hero__title { color: #fff; text-shadow: 0 2px 20px rgba(30, 16, 70, .3); }
-.hero__title em { color: #ffe3ad; }
-.hero__lead { color: #fff; }
-.hero__desc { color: rgba(255, 255, 255, .9); }
+/* --- Толгой: бараан frosted --- */
+.header { background: rgba(10,10,12,.72); }
+.header.is-scrolled { background: rgba(10,10,12,.9); }
+.logo__sub { color: var(--gold); }
+.cart-count { color: #16130a; }
+.account__avatar { color: #16130a; }
+
+/* --- Hero: алтан гэрэлтэлт --- */
+.hero { background: radial-gradient(760px 500px at 82% 2%, rgba(201,168,76,.13), transparent 58%); }
+.hero__title em { color: var(--gold-dark); }
 .hero__eyebrow {
-  background: rgba(255, 255, 255, .16);
-  border-color: rgba(255, 255, 255, .35);
-  color: #fff;
-  backdrop-filter: blur(4px);
-}
-.hero__stats b { color: #fff; }
-.hero__stats span { color: rgba(255, 255, 255, .8); }
-.hero__cta .btn--ghost {
-  background: rgba(255, 255, 255, .16);
-  border-color: rgba(255, 255, 255, .4);
-  color: #fff;
-}
-.hero__cta .btn--ghost:hover { background: rgba(255, 255, 255, .28); }
-
-/* --- Толгой: frosted цагаан --- */
-.header { background: rgba(255, 255, 255, .7); }
-.header.is-scrolled { background: rgba(255, 255, 255, .86); }
-
-/* --- Давуу тал (features): frosted зурвас --- */
-.features {
-  background: rgba(255, 255, 255, .1);
-  border-top: 1px solid rgba(255, 255, 255, .2);
-  border-bottom: 1px solid rgba(255, 255, 255, .2);
-  backdrop-filter: blur(6px);
-}
-.feature h3 { color: #fff; }
-.feature p { color: rgba(255, 255, 255, .82); }
-.feature__icon { background: rgba(255, 255, 255, .2); color: #fff; }
-
-/* --- Яагаад декант --- */
-.why__list li { color: rgba(255, 255, 255, .9); }
-.why__list b { color: #fff; }
-.why__list li::before { border-color: #fff; }
-.why__media {
-  background: rgba(255, 255, 255, .12);
-  border-color: rgba(255, 255, 255, .22);
+  background: var(--gold-soft); border-color: rgba(201,168,76,.4); color: var(--gold-dark);
   backdrop-filter: blur(4px);
 }
 
-/* --- Захиалгын мэдээлэл --- */
-.order__lead { color: rgba(255, 255, 255, .9); }
-.order__contact li { border-bottom-color: rgba(255, 255, 255, .28); }
-.order__contact span:first-child { color: rgba(255, 255, 255, .72); }
-.order__contact a, .order__contact li > span { color: #fff; }
-.order__contact a:hover { color: #ffe3ad; }
-.order__social a { border-color: rgba(255, 255, 255, .4); color: #fff; }
-.order__social a:hover { background: #fff; color: var(--ink); border-color: #fff; }
+/* --- Features (--ink-deep дэвсгэртэй) --- */
+.feature p { color: var(--ink-soft); }
+.feature__icon { background: var(--gold-soft); color: var(--gold-dark); }
 
-/* --- Шүүлтүүр / хайлт: frosted цагаан --- */
-.filter-chip { background: rgba(255, 255, 255, .88); border-color: rgba(255, 255, 255, .5); }
-.filter-chip:hover { background: #fff; }
-.search, .select { background: rgba(255, 255, 255, .9); border-color: rgba(255, 255, 255, .5); }
-
-/* --- Футер: тунгалаг, ягаан харагдана --- */
-.footer { background: transparent; color: #fff; }
-.footer__brand .logo__name { color: #fff; }
-.footer__brand p { color: rgba(255, 255, 255, .82); }
-.footer__col h4 { color: #fff; }
-.footer__col a, .footer__col span { color: rgba(255, 255, 255, .82); }
-.footer__col a:hover { color: #ffe3ad; }
-.footer__bottom {
-  border-top-color: rgba(255, 255, 255, .22);
-  color: rgba(255, 255, 255, .75);
+/* --- Карт: медиа дарк, badge/quickview дарк --- */
+.card__media { background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 24%, var(--surface)), var(--surface)); }
+.card__badge { background: var(--gold-soft); color: var(--gold-dark); }
+.card__quickview {
+  background: rgba(18,18,22,.82); border-color: var(--line-strong); color: var(--ink);
+  backdrop-filter: blur(4px);
 }
+.card__quickview:hover { background: rgba(30,30,36,.95); }
+.cart-line__thumb, .qv__media {
+  background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 24%, var(--surface)), var(--surface));
+}
+.why__media { background: linear-gradient(160deg, var(--surface), var(--surface-2)); border: 1px solid var(--line); }
 
-/* --- Логоны дэд текст толгой дээр --- */
-.logo__sub { color: var(--muted); }
+/* --- Шүүлт / хайлт --- */
+.filter-chip { background: transparent; border-color: var(--line-strong); color: var(--ink-soft); }
+.filter-chip:hover { border-color: var(--gold); color: var(--ink); }
+.filter-chip.is-active { background: var(--gold); border-color: var(--gold); color: #16130a; }
+.search, .select { background: var(--surface); border-color: var(--line-strong); }
+
+/* --- Форм: дарк focus --- */
+.field input:focus, .field textarea:focus { background: var(--surface-2); }
+
+/* --- Toast, modal --- */
+.toast { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+.modal__close { background: rgba(18,18,22,.82); color: var(--ink); }
+
+/* --- Захиалгын сошиал --- */
+.order__social a:hover { background: var(--gold); color: #16130a; border-color: var(--gold); }
+
+/* --- Футер --- */
+.footer { background: var(--ink-deep); }
+.footer__col a:hover { color: var(--gold-dark); }
 
 /* ==================================================================== */
 /*  22. OTP / НУУЦ ҮГ СЭРГЭЭХ / БАТАЛГААЖУУЛАЛТ                          */
@@ -1302,14 +1278,15 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 }
 
 /* Концентраци (брэнд мөрөнд EDP/EDT) */
-.card__conc { font-weight: 700; letter-spacing: .02em; color: #8a6d3f; }
+.card__conc { font-weight: 700; letter-spacing: .02em; color: var(--gold-dark); }
 
 /* Хямдралтай үнэ — хассан анхны үнэ + шинэ үнэ */
 .price-old {
-  text-decoration: line-through; color: var(--muted, #98918a);
+  text-decoration: line-through; color: var(--muted);
   font-size: .78em; font-weight: 500; margin-right: 7px;
 }
-.price-now { color: #c0392b; font-weight: 700; }
+.price-now { color: #e07564; font-weight: 700; }
 
-/* "Хямдрал" шүүлтийн товч */
-.filter-chip--sale:not(.is-active) { color: #c0392b; }
+/* Хямдралын badge, "Хямдрал" шүүлтийн товч */
+.card__badge--sale { background: #d9614f; color: #fff; }
+.filter-chip--sale:not(.is-active) { color: #e07564; }
