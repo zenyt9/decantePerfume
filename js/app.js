@@ -216,6 +216,11 @@
     var action = actEl.getAttribute("data-action");
 
     switch (action) {
+      case "home":
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        document.body.classList.remove("nav-open");
+        break;
       case "open-cart":   openCart(); break;
       case "close-cart":  closeCart(); break;
       case "close-modal": PM.modal.close(); break;
