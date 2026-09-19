@@ -101,12 +101,12 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
 /*  Байршил (sidebar + main)                                          */
 /* ------------------------------------------------------------------ */
 .ad-layout {
-  display: grid;
-  grid-template-columns: 246px 1fr;
-  align-items: start;
+  display: flex; align-items: stretch;
   min-height: calc(100dvh - 66px);
 }
 .ad-sidebar {
+  flex: 0 0 246px; width: 246px;
+  align-self: flex-start;
   position: sticky; top: 66px;
   height: calc(100dvh - 66px);
   background: var(--a-topbar);
@@ -130,7 +130,7 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
 }
 .ad-nav__ico { font-size: 15px; width: 20px; text-align: center; }
 
-.ad-main { padding: 32px 36px 64px; min-width: 0; }
+.ad-main { flex: 1 1 auto; min-width: 0; padding: 32px 36px 64px; }
 
 /* ------------------------------------------------------------------ */
 /*  Хуудасны толгой                                                    */
@@ -391,8 +391,9 @@ body.admin .overlay.is-visible, #ad-overlay.is-visible { opacity: 1; visibility:
 /*  Responsive                                                         */
 /* ------------------------------------------------------------------ */
 @media (max-width: 900px) {
-  .ad-layout { grid-template-columns: 1fr; }
+  .ad-layout { flex-direction: column; }
   .ad-sidebar {
+    flex: none; width: auto; align-self: stretch;
     position: static; height: auto; border-right: none; border-bottom: 1px solid var(--a-line);
     padding: 10px 12px;
   }
