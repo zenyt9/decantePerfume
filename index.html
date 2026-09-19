@@ -90,11 +90,7 @@
             <a href="#products" class="btn btn--solid btn--lg">Дэлгүүр үзэх</a>
             <a href="#how" class="btn btn--ghost btn--lg">Хэрхэн ажилладаг вэ?</a>
           </div>
-          <ul class="hero__stats">
-            <li><b>120+</b><span>Үнэрийн сонголт</span></li>
-            <li><b>5</b><span>Хэмжээ · 5–100мл</span></li>
-            <li><b>24ц</b><span>Хотод хүргэлт</span></li>
-          </ul>
+          <ul class="hero__stats" id="hero-stats"></ul>
         </div>
 
         <div class="hero__visual" aria-hidden="true">
@@ -244,23 +240,7 @@
           <p class="section__eyebrow">Сэтгэгдэл</p>
           <h2 class="section__title">Үйлчлүүлэгчид юу гэдэг вэ</h2>
         </header>
-        <div class="reviews">
-          <figure class="review">
-            <div class="review__stars" aria-label="5 од">★★★★★</div>
-            <blockquote>Ориг байгаа нь мэдрэгдэж байна. 10мл нь надад яг таарлаа, үнэ бас боломжийн.</blockquote>
-            <figcaption>— Сарнай, Улаанбаатар</figcaption>
-          </figure>
-          <figure class="review">
-            <div class="review__stars" aria-label="5 од">★★★★★</div>
-            <blockquote>3 үнэр захиалаад маргааш нь гартаа авсан. Савлагаа нь цэвэрхэн, гоё.</blockquote>
-            <figcaption>— Бат, Дархан</figcaption>
-          </figure>
-          <figure class="review">
-            <div class="review__stars" aria-label="5 од">★★★★★</div>
-            <blockquote>Бүтэн шил авахаасаа өмнө туршиж үзэх нь үнэхээр ухаалаг шийдэл юм байна.</blockquote>
-            <figcaption>— Оюун, Эрдэнэт</figcaption>
-          </figure>
-        </div>
+        <div class="reviews" id="reviews-grid"></div>
       </div>
     </section>
 
@@ -381,6 +361,12 @@
         <a href="#" data-facebook target="_blank" rel="noopener">Facebook</a>
         <a href="#" data-instagram target="_blank" rel="noopener">Instagram</a>
         <a href="#" data-messenger target="_blank" rel="noopener">Messenger</a>
+      </div>
+      <div class="footer__col">
+        <h4>Тусламж</h4>
+        <a href="#faq">Асуулт хариулт</a>
+        <a href="#" data-action="legal" data-legal="privacy">Нууцлалын бодлого</a>
+        <a href="#" data-action="legal" data-legal="returns">Буцаалт / солилт</a>
       </div>
     </div>
     <div class="footer__bottom container">

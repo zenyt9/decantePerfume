@@ -221,6 +221,10 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
         document.body.classList.remove("nav-open");
         break;
+      case "legal":
+        e.preventDefault();
+        openLegal(actEl.getAttribute("data-legal"));
+        break;
       case "open-cart":   openCart(); break;
       case "close-cart":  closeCart(); break;
       case "close-modal": PM.modal.close(); break;
@@ -387,11 +391,45 @@
     u.qsa("[data-free-over]").forEach(function (el) { el.textContent = u.formatPrice(c.delivery.freeOver); });
   }
 
+  /* Нүүрний статистик (config.stats-аас, value хоосныг алгасна) */
+  function renderStats() {
+    var el = u.qs("#hero-stats");
+    if (!el || !PM.CONFIG.stats) return;
+    el.innerHTML = PM.CONFIG.stats.filter(function (s) { return s.value; }).map(function (s) {
+      return "<li><b>" + u.escapeHtml(s.value) + "</b><span>" + u.escapeHtml(s.label) + "</span></li>";
+    }).join("");
+  }
+
+  /* Хэрэглэгчийн сэтгэгдэл (config.reviews-аас) */
+  function renderReviews() {
+    var el = u.qs("#reviews-grid");
+    if (!el || !PM.CONFIG.reviews) return;
+    el.innerHTML = PM.CONFIG.reviews.map(function (r) {
+      return '<figure class="review">' +
+        '<div class="review__stars" aria-label="5 од">★★★★★</div>' +
+        "<blockquote>" + u.escapeHtml(r.text) + "</blockquote>" +
+        "<figcaption>— " + u.escapeHtml(r.author) + "</figcaption>" +
+      "</figure>";
+    }).join("");
+  }
+
+  /* Хууль эрх зүйн текстийг модалаар нээх */
+  function openLegal(key) {
+    var doc = PM.CONFIG.legal && PM.CONFIG.legal[key];
+    if (!doc) return;
+    PM.modal.open(
+      '<div class="legal"><h3 class="legal__title">' + u.escapeHtml(doc.title) + "</h3>" +
+      '<div class="legal__body">' + doc.body + "</div></div>"
+    );
+  }
+
   /* ================================================================== */
   /*  Эхлүүлэх                                                           */
   /* ================================================================== */
   async function init() {
     fillConfigText();
+    renderStats();
+    renderReviews();
 
     // Сагс өөрчлөгдөх бүрд дэлгэц шинэчлэх
     PM.cart.subscribe(PM.ui.renderCart);

@@ -1290,3 +1290,11 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 /* Хямдралын badge, "Хямдрал" шүүлтийн товч */
 .card__badge--sale { background: #d9614f; color: #fff; }
 .filter-chip--sale:not(.is-active) { color: #e07564; }
+
+/* Хууль эрх зүйн модал (Нууцлал / Буцаалт) */
+.legal { padding: 34px 34px 30px; }
+.legal__title { font-family: var(--font-display); font-size: 27px; margin: 0 0 16px; color: var(--ink); }
+.legal__body { color: var(--ink-soft); font-size: 14.5px; line-height: 1.7; }
+.legal__body p { margin: 0 0 13px; }
+.legal__body p:last-child { margin-bottom: 0; }
+.legal__body b { color: var(--ink); }
