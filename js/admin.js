@@ -214,7 +214,7 @@
       quickNav +
       '<div class="ad-stats">' + cards + "</div>" +
       '<div class="ad-panel"><h2 class="ad-panel__title">Нөөцлөл (Backup)</h2>' +
-        '<p style="color:#6b7280;font-size:13px;margin:0 0 12px;line-height:1.5">' +
+        '<p class="ad-hint">' +
           'Бүх өгөгдлийг (захиалга, хэрэглэгч, бараа) нэг .json файлаар татаж, ' +
           'компьютер эсвэл Google Drive-даа хадгалаарай. Долоо хоног бүр татахыг зөвлөнө.</p>' +
         '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Backup татах (.json)</a></div>' +
