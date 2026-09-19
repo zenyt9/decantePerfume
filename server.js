@@ -96,11 +96,10 @@ function serveStatic(req, res, pathname) {
         "utf8"
       );
       headers["Cache-Control"] = "no-cache";
-    } else if (STATIC_ALLOW.test(rel)) {
-      // Хувилбартай статик файл (css/js/assets) — удаан кэшилж болно
-      headers["Cache-Control"] = "public, max-age=31536000";
     } else {
-      // robots.txt, sitemap.xml, favicon зэрэг — богино
+      // Статик файл (css/js/assets, robots, sitemap): үргэлж дахин шалгах.
+      // ?v=BUILD_ID хувилбартай тул шинэ deploy бүрд шинэ URL болно; харин
+      // хуучин HTML-ээс дуудсан хувилбаргүй URL ч хуучин кэшэнд гацахгүй.
       headers["Cache-Control"] = "no-cache";
     }
 
