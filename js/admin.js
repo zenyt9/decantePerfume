@@ -153,14 +153,22 @@
         '<main class="ad-main" id="ad-main"></main>' +
       "</div>";
 
-    switchView(state.view);
+    // Анхны харагдацыг URL hash-аас (эсвэл dashboard) авна
+    var initial = (location.hash || "").replace("#", "");
+    if (["dashboard", "products", "brands", "orders"].indexOf(initial) === -1) initial = "dashboard";
+    switchView(initial, false);
+    try { history.replaceState({ adminView: initial }, "", "#" + initial); } catch (e) {}
   }
 
-  function switchView(name) {
+  function switchView(name, push) {
     state.view = name;
     u.qsa(".ad-nav__item").forEach(function (b) {
       b.classList.toggle("is-active", b.getAttribute("data-view") === name);
     });
+    // Хөтчийн back товч админ дотор ажиллахын тулд history-д бичнэ
+    if (push !== false) {
+      try { history.pushState({ adminView: name }, "", "#" + name); } catch (e) {}
+    }
     if (name === "dashboard") return renderDashboard();
     if (name === "products") return renderProducts();
     if (name === "brands") return renderBrands();
@@ -594,6 +602,14 @@
       case "brand-delete": confirmDeleteBrand(id); break;
       case "order-view": openOrderDetail(id); break;
     }
+  });
+
+  // Хөтчийн back/forward — админ доторх харагдацуудаар шилжинэ (дэлгүүр рүү үсрэхгүй)
+  window.addEventListener("popstate", function (e) {
+    if (!u.qs(".ad-nav")) return; // зөвхөн админ shell байгаа үед
+    var v = (e.state && e.state.adminView) || "dashboard";
+    if (["dashboard", "products", "brands", "orders"].indexOf(v) === -1) v = "dashboard";
+    switchView(v, false);
   });
 
   document.addEventListener("change", function (e) {

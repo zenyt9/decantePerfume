@@ -91,10 +91,15 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
   color: var(--a-gold); margin-left: 8px; vertical-align: middle;
 }
 .ad-topbar__right { display: flex; align-items: center; gap: 14px; }
-.ad-user { font-size: 14px; font-weight: 600; color: var(--a-text); }
+.ad-user {
+  font-size: 13.5px; font-weight: 700; color: var(--a-gold-hi);
+  background: var(--a-gold-soft); border: 1px solid rgba(201,168,76,.4);
+  padding: 5px 13px; border-radius: 100px;
+}
 .ad-user::before {
   content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-  background: #4ac57e; margin-right: 7px; vertical-align: middle;
+  background: #4ac57e; margin-right: 8px; vertical-align: middle;
+  box-shadow: 0 0 0 2px rgba(74,197,126,.25);
 }
 
 /* ------------------------------------------------------------------ */
