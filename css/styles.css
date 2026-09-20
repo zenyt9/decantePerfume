@@ -1331,6 +1331,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px;
   box-shadow: var(--shadow-lg); padding: 16px 20px;
 }
+.cookie-banner[hidden] { display: none; }
 .cookie-banner__text { margin: 0; font-size: 13.5px; color: var(--ink-soft); flex: 1 1 260px; line-height: 1.5; }
 .cookie-banner__text a { color: var(--gold); text-decoration: underline; }
 .cookie-banner__actions { display: flex; gap: 10px; flex-wrap: wrap; }
