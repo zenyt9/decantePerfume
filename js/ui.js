@@ -50,8 +50,7 @@ PM.ui = (function () {
   function productMedia(product) {
     if (product.image) {
       return '<img class="prod-img" src="' + esc(product.image) + '" ' +
-        'alt="' + esc(product.brand + " " + product.name) + '" loading="lazy" ' +
-        'onerror="this.style.display=\'none\'" />';
+        'alt="' + esc(product.brand + " " + product.name) + '" loading="lazy" />';
     }
     return bottleSVG(product);
   }

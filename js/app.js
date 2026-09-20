@@ -451,6 +451,12 @@
         u.escapeHtml(err.message) + "</p>";
     }
 
+    // Эвдэрсэн бүтээгдэхүүний зургийг нуух (CSP-д тохирсон, capture фазд)
+    document.addEventListener("error", function (e) {
+      var t = e.target;
+      if (t && t.tagName === "IMG" && t.classList.contains("prod-img")) t.style.display = "none";
+    }, true);
+
     // Үйл явдлууд
     document.addEventListener("click", onClick);
     bindFilters();

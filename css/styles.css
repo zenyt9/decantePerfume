@@ -1322,3 +1322,20 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   .qv__sim-grid { grid-template-columns: repeat(2, 1fr); }
   .qv__similar { padding: 20px 26px 28px; }
 }
+
+/* Cookie зөвшөөрлийн banner */
+.cookie-banner {
+  position: fixed; z-index: 260; left: 50%; bottom: 20px; transform: translateX(-50%);
+  width: calc(100% - 32px); max-width: 640px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px;
+  box-shadow: var(--shadow-lg); padding: 16px 20px;
+}
+.cookie-banner__text { margin: 0; font-size: 13.5px; color: var(--ink-soft); flex: 1 1 260px; line-height: 1.5; }
+.cookie-banner__text a { color: var(--gold); text-decoration: underline; }
+.cookie-banner__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.cookie-banner .btn { padding: 9px 18px; font-size: 13.5px; }
+@media (max-width: 480px) {
+  .cookie-banner { flex-direction: column; align-items: stretch; }
+  .cookie-banner__actions .btn { flex: 1; }
+}

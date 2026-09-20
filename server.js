@@ -22,6 +22,37 @@ const PORT = process.env.PORT || 4173;
 // HTML доторх css/js/assets линкүүдэд ?v=BUILD_ID нэмснээр хуучин кэш арилна.
 const BUILD_ID = Date.now().toString(36);
 
+/* Аюулгүй байдлын толгойнууд (бүх хариуд) */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://www.googletagmanager.com https://connect.facebook.net",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: https:",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://connect.facebook.net",
+  "frame-src https://www.facebook.com",
+  "frame-ancestors 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join("; ");
+
+function setSecurityHeaders(res) {
+  res.setHeader("Content-Security-Policy", CSP);
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+}
+
+/* Брэндтэй 404 хуудас (эхлэхэд нэг уншина) */
+let NOT_FOUND_HTML = "404 — Хуудас олдсонгүй";
+try { NOT_FOUND_HTML = fs.readFileSync(path.join(ROOT, "404.html"), "utf8"); } catch (e) {}
+function send404(res) {
+  res.writeHead(404, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
+  res.end(NOT_FOUND_HTML);
+}
+
 /* Аюулгүй байдал: зөвхөн эдгээр газраас статик файл түгээнэ.
    (data/, lib/, server.js, db.json зэрэг хэзээ ч задрахгүй.) */
 const STATIC_ALLOW = /^\/(css|js|assets)\//;
@@ -61,14 +92,12 @@ function serveStatic(req, res, pathname) {
   // ГАДАГШ гарахыг хориглодог тул ROOT доторх бусад файл (data/, lib/) руу
   // "/assets/../lib/seed.js" мэтээр орохоос сэргийлнэ.
   if (rel.indexOf("..") !== -1 || rel.indexOf("\0") !== -1) {
-    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-    return res.end("404 — олдсонгүй");
+    return send404(res);
   }
 
   // Зөвшөөрөгдсөн эсэхийг шалгах
   if (!STATIC_FILES.has(rel) && !STATIC_ALLOW.test(rel)) {
-    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-    return res.end("404 — олдсонгүй");
+    return send404(res);
   }
 
   const filePath = path.resolve(ROOT, "." + rel);
@@ -80,8 +109,7 @@ function serveStatic(req, res, pathname) {
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-      return res.end("404 — олдсонгүй: " + rel);
+      return send404(res);
     }
     const ext = path.extname(filePath);
     const headers = { "Content-Type": MIME[ext] || "application/octet-stream" };
@@ -116,6 +144,7 @@ function serveStatic(req, res, pathname) {
 ensureSeeded();
 
 const server = http.createServer((req, res) => {
+  setSecurityHeaders(res);
   let parsed;
   try {
     parsed = new URL(req.url, "http://localhost");

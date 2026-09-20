@@ -366,6 +366,7 @@
         <h4>Тусламж</h4>
         <a href="#faq">Асуулт хариулт</a>
         <a href="#" data-action="legal" data-legal="privacy">Нууцлалын бодлого</a>
+        <a href="#" data-action="legal" data-legal="terms">Үйлчилгээний нөхцөл</a>
         <a href="#" data-action="legal" data-legal="returns">Буцаалт / солилт</a>
       </div>
     </div>
@@ -400,33 +401,20 @@
   <div class="overlay" id="overlay"></div>
   <div class="toast-root" id="toast-root" aria-live="polite" aria-atomic="true"></div>
 
+  <!-- ======================= COOKIE ЗӨВШӨӨРӨЛ ======================= -->
+  <div class="cookie-banner" id="cookie-banner" role="dialog" aria-label="Cookie зөвшөөрөл" hidden>
+    <p class="cookie-banner__text">Бид сайтын үйл ажиллагаа болон таны туршлагыг сайжруулахад cookie ашигладаг.
+      <a href="#" data-action="legal" data-legal="privacy">Дэлгэрэнгүй</a></p>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn--outline" data-cookie="decline">Зөвхөн шаардлагатай</button>
+      <button type="button" class="btn btn--solid" data-cookie="accept">Зөвшөөрөх</button>
+    </div>
+  </div>
+
   <!-- ======================= СКРИПТ ======================= -->
   <!-- Ачаалах дараалал чухал: тохиргоо → туслах → API → өгөгдөл → сагс → UI → session → апп -->
   <script src="js/config.js"></script>
-  <!-- Маркетингийн хэмжүүр — config.js-д ID оруулбал л ачаална -->
-  <script>
-    (function () {
-      var a = (window.PM && PM.CONFIG && PM.CONFIG.analytics) || {};
-      if (a.ga4) {
-        var g = document.createElement("script");
-        g.async = true;
-        g.src = "https://www.googletagmanager.com/gtag/js?id=" + a.ga4;
-        document.head.appendChild(g);
-        window.dataLayer = window.dataLayer || [];
-        window.gtag = function () { window.dataLayer.push(arguments); };
-        window.gtag("js", new Date());
-        window.gtag("config", a.ga4);
-      }
-      if (a.fbPixel) {
-        !function (f, b, e, v, n, t, s) {
-          if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
-          if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = [];
-          t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
-        }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-        window.fbq("init", a.fbPixel); window.fbq("track", "PageView");
-      }
-    })();
-  </script>
+  <script src="js/analytics.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/products.js"></script>
