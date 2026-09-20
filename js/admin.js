@@ -28,9 +28,13 @@
     products: [],
     brands: [],
     orders: [],
+    users: [],
+    reviews: [],
     stats: null,
     orderFilter: "all",
+    search: { products: "", orders: "", customers: "" },
   };
+  var VIEWS = ["dashboard", "products", "brands", "orders", "customers", "reviews"];
 
   var root = function () { return u.qs("#admin-root"); };
 
@@ -110,19 +114,26 @@
       PM.api.get("/brands"),
       PM.api.get("/orders"),
       PM.api.get("/stats"),
+      PM.api.get("/users").catch(function () { return { users: [] }; }),
+      PM.api.get("/reviews").catch(function () { return { reviews: [] }; }),
     ]);
     state.products = r[0].products || [];
     state.brands = r[1].brands || [];
     state.orders = r[2].orders || [];
     state.stats = r[3];
+    state.users = r[4].users || [];
+    state.reviews = r[5].reviews || [];
   }
   function reloadProducts() { return PM.api.get("/products?all=1").then(function (r) { state.products = r.products; }); }
   function reloadBrands() { return PM.api.get("/brands").then(function (r) { state.brands = r.brands; }); }
   function reloadOrders() { return PM.api.get("/orders").then(function (r) { state.orders = r.orders; }); }
   function reloadStats() { return PM.api.get("/stats").then(function (r) { state.stats = r; }); }
+  function reloadUsers() { return PM.api.get("/users").then(function (r) { state.users = r.users; }); }
+  function reloadReviews() { return PM.api.get("/reviews").then(function (r) { state.reviews = r.reviews; }); }
 
   function getProduct(id) { return state.products.filter(function (p) { return p.id === id; })[0]; }
   function getOrder(id) { return state.orders.filter(function (o) { return o.id === id; })[0]; }
+  function getUser(id) { return state.users.filter(function (x) { return x.id === id; })[0]; }
 
   /* ================================================================== */
   /*  Апп бүрхүүл                                                        */
@@ -133,6 +144,8 @@
       { key: "products",  label: "Бүтээгдэхүүн", icon: "🧴" },
       { key: "brands",    label: "Брэнд",         icon: "✦" },
       { key: "orders",    label: "Захиалга",      icon: "🧾" },
+      { key: "customers", label: "Хэрэглэгч",     icon: "👤" },
+      { key: "reviews",   label: "Сэтгэгдэл",     icon: "⭐" },
     ].map(function (n) {
       return '<button type="button" class="ad-nav__item' + (state.view === n.key ? " is-active" : "") +
         '" data-view="' + n.key + '"><span class="ad-nav__ico">' + n.icon + "</span>" + esc(n.label) + "</button>";
@@ -155,7 +168,7 @@
 
     // Анхны харагдацыг URL hash-аас (эсвэл dashboard) авна
     var initial = (location.hash || "").replace("#", "");
-    if (["dashboard", "products", "brands", "orders"].indexOf(initial) === -1) initial = "dashboard";
+    if (VIEWS.indexOf(initial) === -1) initial = "dashboard";
     switchView(initial, false);
     try { history.replaceState({ adminView: initial }, "", "#" + initial); } catch (e) {}
   }
@@ -173,6 +186,8 @@
     if (name === "products") return renderProducts();
     if (name === "brands") return renderBrands();
     if (name === "orders") return renderOrders();
+    if (name === "customers") return renderCustomers();
+    if (name === "reviews") return renderReviewsView();
   }
 
   function main() { return u.qs("#ad-main"); }
@@ -236,28 +251,48 @@
   /* ================================================================== */
   /*  Харагдац: Бүтээгдэхүүн                                             */
   /* ================================================================== */
+  function productRow(p) {
+    var tags = "";
+    if (p.popular) tags += '<span class="tag">Эрэлттэй</span>';
+    if (Number(p.discount) > 0) tags += '<span class="tag tag--sale">−' + Math.round(p.discount) + "%</span>";
+    if (p.stock !== "" && p.stock !== null && p.stock !== undefined) {
+      var n = Math.max(0, Math.round(Number(p.stock) || 0));
+      tags += n <= 0 ? '<span class="tag tag--off">Дууссан</span>' : '<span class="tag">Нөөц: ' + n + "</span>";
+    }
+    tags += (p.active === false)
+      ? '<span class="tag tag--off">Идэвхгүй</span>'
+      : '<span class="tag tag--on">Идэвхтэй</span>';
+    return "<tr>" +
+      '<td><div class="ad-prod"><span class="ad-swatch" style="background:' + esc(p.accent || "#ccc") + '"></span>' +
+        "<div><b>" + esc(p.name) + '</b><span class="ad-prod__brand">' + esc(p.brand) + " · " + genderLabel(p.gender) +
+        (p.concentration ? " · " + esc(p.concentration) : "") + "</span></div></div></td>" +
+      "<td>" + SIZES.map(function (s) { return fmt(p.prices[s]); }).join(" / ") + "</td>" +
+      "<td>" + tags + "</td>" +
+      '<td class="ad-actions">' +
+        '<button class="btn btn--text btn--sm" data-ad="product-edit" data-id="' + p.id + '">Засах</button>' +
+        '<button class="btn btn--text btn--sm ad-del" data-ad="product-delete" data-id="' + p.id + '">Устгах</button>' +
+      "</td></tr>";
+  }
+  function fillProducts() {
+    var q = (state.search.products || "").trim().toLowerCase();
+    var list = state.products.filter(function (p) {
+      return !q || (p.name + " " + p.brand).toLowerCase().indexOf(q) > -1;
+    });
+    var tb = u.qs("#ad-prod-body");
+    if (tb) tb.innerHTML = list.length
+      ? list.map(productRow).join("")
+      : '<tr><td colspan="4" class="ad-empty">Бараа олдсонгүй.</td></tr>';
+  }
   function renderProducts() {
-    var rows = state.products.map(function (p) {
-      return '<tr>' +
-        '<td><div class="ad-prod"><span class="ad-swatch" style="background:' + esc(p.accent || "#ccc") + '"></span>' +
-          '<div><b>' + esc(p.name) + '</b><span class="ad-prod__brand">' + esc(p.brand) + " · " + genderLabel(p.gender) + "</span></div></div></td>" +
-        "<td>" + SIZES.map(function (s) { return fmt(p.prices[s]); }).join(" / ") + "</td>" +
-        "<td>" + (p.popular ? '<span class="tag">Эрэлттэй</span>' : "") +
-          (p.active === false ? '<span class="tag tag--off">Идэвхгүй</span>' : '<span class="tag tag--on">Идэвхтэй</span>') + "</td>" +
-        '<td class="ad-actions">' +
-          '<button class="btn btn--text btn--sm" data-ad="product-edit" data-id="' + p.id + '">Засах</button>' +
-          '<button class="btn btn--text btn--sm ad-del" data-ad="product-delete" data-id="' + p.id + '">Устгах</button>' +
-        "</td></tr>";
-    }).join("");
-
     main().innerHTML =
       pageHead("Бүтээгдэхүүн", state.products.length + " бараа",
+        searchBox("products", "Нэр, брэнд хайх…") +
         '<button class="btn btn--solid btn--sm" data-ad="product-new">＋ Шинэ бараа</button>') +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
         "<th>Нэр</th><th>Үнэ 5/10/20/50/100мл (₮)</th><th>Төлөв</th><th></th>" +
-      "</tr></thead><tbody>" +
-        (rows || '<tr><td colspan="4" class="ad-empty">Бараа алга.</td></tr>') +
-      "</tbody></table></div></div>";
+      '</tr></thead><tbody id="ad-prod-body"></tbody></table></div></div>';
+    fillProducts();
+    onSearch("products", fillProducts);
   }
 
   function openProductForm(product) {
@@ -440,37 +475,45 @@
       "</tr>";
   }
 
+  function orderRowFull(o) {
+    return "<tr>" +
+      "<td><b>" + esc(o.code) + "</b></td>" +
+      "<td>" + esc(dateStr(o.createdAt)) + "</td>" +
+      "<td>" + esc(o.customer.name) + '<br /><span class="ad-muted">' + esc(o.customer.phone) + "</span></td>" +
+      "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
+      "<td><b>" + fmt(o.total) + "</b></td>" +
+      "<td>" + statusSelect(o) + "</td>" +
+      '<td class="ad-actions"><button class="btn btn--text btn--sm" data-ad="order-view" data-id="' + o.id + '">Дэлгэрэнгүй</button></td>' +
+      "</tr>";
+  }
+  function fillOrders() {
+    var filter = state.orderFilter;
+    var q = (state.search.orders || "").trim().toLowerCase();
+    var list = state.orders.filter(function (o) {
+      if (filter !== "all" && o.status !== filter) return false;
+      return !q || (o.code + " " + o.customer.name + " " + o.customer.phone).toLowerCase().indexOf(q) > -1;
+    });
+    var tb = u.qs("#ad-order-body");
+    if (tb) tb.innerHTML = list.length
+      ? list.map(orderRowFull).join("")
+      : '<tr><td colspan="7" class="ad-empty">Захиалга олдсонгүй.</td></tr>';
+  }
   function renderOrders() {
     var filter = state.orderFilter;
-    var list = filter === "all" ? state.orders : state.orders.filter(function (o) { return o.status === filter; });
-
     var chips = [{ key: "all", label: "Бүгд" }].concat(STATUS_ORDER.map(function (k) {
       return { key: k, label: STATUS[k].label };
     })).map(function (c) {
       return '<button class="filter-chip' + (filter === c.key ? " is-active" : "") + '" data-status="' + c.key + '">' + esc(c.label) + "</button>";
     }).join("");
 
-    var rows = list.map(function (o) {
-      var st = STATUS[o.status] || { label: o.status, cls: "" };
-      return '<tr>' +
-        '<td><b>' + esc(o.code) + "</b></td>" +
-        "<td>" + esc(dateStr(o.createdAt)) + "</td>" +
-        "<td>" + esc(o.customer.name) + '<br /><span class="ad-muted">' + esc(o.customer.phone) + "</span></td>" +
-        "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
-        "<td><b>" + fmt(o.total) + "</b></td>" +
-        '<td>' + statusSelect(o) + "</td>" +
-        '<td class="ad-actions"><button class="btn btn--text btn--sm" data-ad="order-view" data-id="' + o.id + '">Дэлгэрэнгүй</button></td>' +
-        "</tr>";
-    }).join("");
-
     main().innerHTML =
-      pageHead("Захиалга", state.orders.length + " захиалга") +
+      pageHead("Захиалга", state.orders.length + " захиалга", searchBox("orders", "Код, нэр, утас хайх…")) +
       '<div class="ad-panel ad-panel--pad"><div class="chips">' + chips + "</div></div>" +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
         "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th><th></th>" +
-      "</tr></thead><tbody>" +
-        (rows || '<tr><td colspan="7" class="ad-empty">Захиалга алга.</td></tr>') +
-      "</tbody></table></div></div>";
+      '</tr></thead><tbody id="ad-order-body"></tbody></table></div></div>';
+    fillOrders();
+    onSearch("orders", fillOrders);
   }
 
   function statusSelect(o) {
@@ -550,6 +593,137 @@
   }
 
   /* ================================================================== */
+  /*  Хайлтын туслахууд                                                 */
+  /* ================================================================== */
+  function searchBox(key, placeholder) {
+    return '<input type="search" class="ad-search" id="ad-search-' + key + '" ' +
+      'placeholder="' + esc(placeholder) + '" value="' + esc(state.search[key] || "") + '" />';
+  }
+  function onSearch(key, fill) {
+    var el = u.qs("#ad-search-" + key);
+    if (el) el.addEventListener("input", function () { state.search[key] = el.value; fill(); });
+  }
+
+  /* ================================================================== */
+  /*  Харагдац: Хэрэглэгч                                                */
+  /* ================================================================== */
+  function customerRow(c) {
+    var badge = c.emailVerified
+      ? '<span class="tag tag--on">Баталгаажсан</span>'
+      : '<span class="tag tag--off">Батлаагүй</span>';
+    return '<tr class="ad-clickable" data-ad="customer-view" data-id="' + c.id + '">' +
+      "<td><b>" + esc(c.name) + "</b> " + badge + "</td>" +
+      "<td>" + esc(c.email) + '<br><span class="ad-muted">' + esc(c.phone || "—") + "</span></td>" +
+      "<td>" + c.orderCount + " ш</td>" +
+      "<td><b>" + fmt(c.totalSpent) + "</b></td>" +
+      "<td>" + esc(dateStr(c.createdAt)) + "</td></tr>";
+  }
+  function fillCustomers() {
+    var q = (state.search.customers || "").trim().toLowerCase();
+    var list = state.users.filter(function (c) {
+      return !q || (c.name + " " + c.email + " " + (c.phone || "")).toLowerCase().indexOf(q) > -1;
+    });
+    var tb = u.qs("#ad-cust-body");
+    if (tb) tb.innerHTML = list.length
+      ? list.map(customerRow).join("")
+      : '<tr><td colspan="5" class="ad-empty">Хэрэглэгч олдсонгүй.</td></tr>';
+  }
+  function renderCustomers() {
+    main().innerHTML =
+      pageHead("Хэрэглэгч", state.users.length + " бүртгэлтэй үйлчлүүлэгч", searchBox("customers", "Нэр, и-мэйл, утас хайх…")) +
+      '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
+        "<th>Нэр</th><th>Холбоо барих</th><th>Захиалга</th><th>Нийт зарцуулсан</th><th>Бүртгүүлсэн</th>" +
+      '</tr></thead><tbody id="ad-cust-body"></tbody></table></div></div>';
+    fillCustomers();
+    onSearch("customers", fillCustomers);
+  }
+  function openCustomerDetail(id) {
+    var c = getUser(id);
+    if (!c) return;
+    var orders = state.orders.filter(function (o) { return o.userId === id; })
+      .sort(function (a, b) { return b.createdAt - a.createdAt; });
+    var orderRows = orders.length ? orders.map(function (o) {
+      var st = STATUS[o.status] || { label: o.status, cls: "" };
+      return "<tr><td><b>" + esc(o.code) + "</b></td><td>" + esc(dateStr(o.createdAt)) + "</td>" +
+        "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
+        "<td><b>" + fmt(o.total) + "</b></td>" +
+        '<td><span class="status ' + st.cls + '">' + esc(st.label) + "</span></td></tr>";
+    }).join("") : '<tr><td colspan="5" class="ad-empty">Захиалга алга.</td></tr>';
+    adOpen(
+      '<div class="ad-form-wrap">' +
+        '<h3 class="modal__title">' + esc(c.name) + "</h3>" +
+        '<p class="ad-muted">' + esc(c.email) + " · " + esc(c.phone || "утасгүй") +
+          " · Бүртгүүлсэн " + esc(dateStr(c.createdAt)) + "</p>" +
+        '<div class="ad-sum">' +
+          "<div><span>Захиалгын тоо</span><b>" + c.orderCount + "</b></div>" +
+          "<div><span>Нийт зарцуулсан</span><b>" + fmt(c.totalSpent) + "</b></div>" +
+          "<div><span>И-мэйл баталгаажсан</span><b>" + (c.emailVerified ? "Тийм" : "Үгүй") + "</b></div>" +
+        "</div>" +
+        '<h4 class="ad-subhead">Захиалгын түүх</h4>' +
+        '<div class="ad-tablewrap"><table class="ad-table ad-table--sm"><thead><tr>' +
+          "<th>Код</th><th>Огноо</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th></tr></thead><tbody>" +
+          orderRows + "</tbody></table></div>" +
+        '<div class="ad-form-foot"><button type="button" class="btn btn--text" data-ad="close-modal">Хаах</button></div>' +
+      "</div>"
+    );
+  }
+
+  /* ================================================================== */
+  /*  Харагдац: Сэтгэгдэл                                                */
+  /* ================================================================== */
+  function reviewRow(r) {
+    return '<div class="ad-review">' +
+      '<div class="ad-review__body"><p>' + esc(r.text) + "</p>" +
+        '<span class="ad-review__author">— ' + esc(r.author) + " · " + esc(dateStr(r.createdAt)) + "</span></div>" +
+      '<button class="btn btn--text btn--sm ad-del" data-ad="review-delete" data-id="' + r.id + '">Устгах</button>' +
+    "</div>";
+  }
+  function fillReviews() {
+    var box = u.qs("#ad-reviews-list");
+    if (box) box.innerHTML = state.reviews.length
+      ? state.reviews.map(reviewRow).join("")
+      : '<p class="ad-empty">Сэтгэгдэл алга. Дээрээс шинэ сэтгэгдэл нэмнэ үү.</p>';
+  }
+  function renderReviewsView() {
+    main().innerHTML =
+      pageHead("Сэтгэгдэл", state.reviews.length + " сэтгэгдэл нүүрэнд харагдаж байна") +
+      '<div class="ad-panel ad-panel--pad">' +
+        '<form id="ad-review-form" class="ad-review-form">' +
+          '<textarea name="text" rows="2" placeholder="Сэтгэгдлийн текст…" required></textarea>' +
+          '<div class="ad-review-form__foot">' +
+            '<input name="author" placeholder="Нэр (ж: Болд, Улаанбаатар)" />' +
+            '<button type="submit" class="btn btn--solid btn--sm">＋ Нэмэх</button>' +
+          "</div>" +
+        "</form>" +
+      "</div>" +
+      '<div class="ad-panel ad-panel--pad"><div id="ad-reviews-list"></div></div>';
+    fillReviews();
+    u.qs("#ad-review-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var f = e.target;
+      var text = f.text.value.trim();
+      if (!text) return;
+      try {
+        await PM.api.post("/reviews", { text: text, author: f.author.value.trim() });
+        await reloadReviews();
+        u.toast("Сэтгэгдэл нэмэгдлээ", "success");
+        renderReviewsView();
+      } catch (err) { u.toast(err.message, "error"); }
+    });
+  }
+  function confirmDeleteReview(id) {
+    confirmModal("Сэтгэгдэл устгах уу?", "Энэ сэтгэгдлийг нүүр хуудаснаас бүрмөсөн устгана.", async function () {
+      try {
+        await PM.api.del("/reviews/" + id);
+        await reloadReviews();
+        adClose();
+        u.toast("Устгагдлаа", "info");
+        renderReviewsView();
+      } catch (err) { adClose(); u.toast(err.message, "error"); }
+    });
+  }
+
+  /* ================================================================== */
   /*  Баталгаажуулах modal                                              */
   /* ================================================================== */
   function confirmModal(title, msg, onYes) {
@@ -601,6 +775,8 @@
       case "product-delete": confirmDeleteProduct(id); break;
       case "brand-delete": confirmDeleteBrand(id); break;
       case "order-view": openOrderDetail(id); break;
+      case "customer-view": openCustomerDetail(id); break;
+      case "review-delete": confirmDeleteReview(id); break;
     }
   });
 
@@ -608,7 +784,7 @@
   window.addEventListener("popstate", function (e) {
     if (!u.qs(".ad-nav")) return; // зөвхөн админ shell байгаа үед
     var v = (e.state && e.state.adminView) || "dashboard";
-    if (["dashboard", "products", "brands", "orders"].indexOf(v) === -1) v = "dashboard";
+    if (VIEWS.indexOf(v) === -1) v = "dashboard";
     switchView(v, false);
   });
 

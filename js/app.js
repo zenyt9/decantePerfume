@@ -404,17 +404,22 @@
     }).join("");
   }
 
-  /* Хэрэглэгчийн сэтгэгдэл (config.reviews-аас) */
+  /* Хэрэглэгчийн сэтгэгдэл (backend-ээс; амжилтгүй бол config fallback) */
   function renderReviews() {
     var el = u.qs("#reviews-grid");
-    if (!el || !PM.CONFIG.reviews) return;
-    el.innerHTML = PM.CONFIG.reviews.map(function (r) {
+    if (!el) return;
+    var tpl = function (r) {
       return '<figure class="review">' +
         '<div class="review__stars" aria-label="5 од">★★★★★</div>' +
         "<blockquote>" + u.escapeHtml(r.text) + "</blockquote>" +
         "<figcaption>— " + u.escapeHtml(r.author) + "</figcaption>" +
       "</figure>";
-    }).join("");
+    };
+    var paint = function (list) {
+      if (!list || !list.length) list = PM.CONFIG.reviews || [];
+      el.innerHTML = list.map(tpl).join("");
+    };
+    PM.api.get("/reviews").then(function (r) { paint(r.reviews); }).catch(function () { paint(null); });
   }
 
   /* Хууль эрх зүйн текстийг модалаар нээх */

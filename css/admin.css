@@ -414,4 +414,35 @@ body.admin .overlay.is-visible, #ad-overlay.is-visible { opacity: 1; visibility:
   .ad-grid2, .ad-grid3 { grid-template-columns: 1fr; }
   .ad-form-wrap { padding: 26px 20px; }
   .ad-page__title { font-size: 28px; }
+  .ad-page__actions { width: 100%; }
+  .ad-search { flex: 1; max-width: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Хуудасны толгойн үйлдлүүд, хайлт                                   */
+/* ------------------------------------------------------------------ */
+.ad-page__actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ad-search {
+  min-width: 210px; max-width: 300px;
+  border: 1px solid var(--a-line-2); border-radius: 100px;
+  padding: 9px 16px; font-size: 13.5px; color: var(--a-text);
+  background: var(--a-panel-2);
+}
+.ad-search:focus { outline: none; border-color: var(--a-gold); background: #24252b; box-shadow: 0 0 0 3px var(--a-gold-soft); }
+.ad-search::placeholder { color: #6f695f; }
+
+/* Дарж болох хүснэгтийн мөр */
+.ad-clickable { cursor: pointer; }
+.ad-clickable:hover { background: rgba(201,168,76,.06) !important; }
+.tag--sale { background: rgba(217,97,79,.16); color: #eb8b82; }
+
+/* Сэтгэгдэл удирдах */
+.ad-review-form { display: grid; gap: 12px; }
+.ad-review-form__foot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ad-review-form__foot input { flex: 1; min-width: 180px; }
+.ad-review { display: flex; align-items: flex-start; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--a-line); }
+.ad-review:first-child { padding-top: 4px; }
+.ad-review:last-child { border-bottom: none; padding-bottom: 4px; }
+.ad-review__body { flex: 1; min-width: 0; }
+.ad-review__body p { margin: 0 0 6px; color: var(--a-text); font-size: 14.5px; line-height: 1.55; }
+.ad-review__author { font-size: 12.5px; color: var(--a-muted); }
