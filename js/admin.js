@@ -241,6 +241,9 @@
           'Бүх өгөгдлийг (захиалга, хэрэглэгч, бараа) нэг .json файлаар татаж, ' +
           'компьютер эсвэл Google Drive-даа хадгалаарай. Долоо хоног бүр татахыг зөвлөнө.</p>' +
         '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Backup татах (.json)</a></div>' +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Аюулгүй байдал</h2>' +
+        '<p class="ad-hint">Админ нууц үгээ хэн ч мэдэхгүй, хүчтэй нууц үгээр тогтмол шинэчилж байхыг зөвлөнө.</p>' +
+        '<button class="btn btn--outline btn--sm" data-ad="change-password">🔑 Нууц үг солих</button></div>' +
       '<div class="ad-panel"><h2 class="ad-panel__title">Төлвөөр</h2><div class="ad-sbadges">' + statusRow + "</div></div>" +
       '<div class="ad-panel"><h2 class="ad-panel__title">Сүүлийн захиалга</h2>' +
         '<div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
@@ -724,6 +727,45 @@
   }
 
   /* ================================================================== */
+  /*  Нууц үг солих                                                      */
+  /* ================================================================== */
+  function openPasswordChange() {
+    adOpen(
+      '<div class="ad-form-wrap">' +
+        '<h3 class="modal__title">Нууц үг солих</h3>' +
+        '<p class="auth__err" hidden></p>' +
+        '<form id="ad-pw-form">' +
+          '<div class="field"><label>Одоогийн нууц үг</label><input type="password" name="current" autocomplete="current-password" required /></div>' +
+          '<div class="field"><label>Шинэ нууц үг (дор хаяж 6 тэмдэгт)</label><input type="password" name="pw1" autocomplete="new-password" minlength="6" required /></div>' +
+          '<div class="field"><label>Шинэ нууц үг давтах</label><input type="password" name="pw2" autocomplete="new-password" minlength="6" required /></div>' +
+          '<div class="ad-form-foot">' +
+            '<button type="button" class="btn btn--text" data-ad="close-modal">Болих</button>' +
+            '<button type="submit" class="btn btn--solid">Хадгалах</button>' +
+          "</div>" +
+        "</form>" +
+      "</div>"
+    );
+    var errEl = u.qs(".ad-form-wrap .auth__err");
+    var showErr = function (msg) { if (errEl) { errEl.textContent = msg; errEl.hidden = false; } };
+    u.qs("#ad-pw-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var f = e.target;
+      if (f.pw1.value !== f.pw2.value) return showErr("Шинэ нууц үг таарахгүй байна.");
+      if (f.pw1.value.length < 6) return showErr("Нууц үг дор хаяж 6 тэмдэгт байх ёстой.");
+      var btn = f.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      try {
+        await PM.api.patch("/auth/me", { currentPassword: f.current.value, newPassword: f.pw1.value });
+        adClose();
+        u.toast("Нууц үг амжилттай шинэчлэгдлээ", "success");
+      } catch (err) {
+        showErr(err.message);
+        btn.disabled = false;
+      }
+    });
+  }
+
+  /* ================================================================== */
   /*  Баталгаажуулах modal                                              */
   /* ================================================================== */
   function confirmModal(title, msg, onYes) {
@@ -777,6 +819,7 @@
       case "order-view": openOrderDetail(id); break;
       case "customer-view": openCustomerDetail(id); break;
       case "review-delete": confirmDeleteReview(id); break;
+      case "change-password": openPasswordChange(); break;
     }
   });
 
