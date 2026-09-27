@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>404 — Хуудас олдсонгүй · Décante</title>
   <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0d0d0f" />
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -16,9 +19,7 @@
       background:radial-gradient(700px 460px at 50% 0%, rgba(201,168,76,.13), transparent 60%), var(--bg);
       color:var(--text); font-family:"Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; text-align:center; }
     .box{ max-width:460px }
-    .mark{ width:44px; height:44px; border-radius:50%; margin:0 auto 26px;
-      background:linear-gradient(140deg,var(--gold-hi),var(--gold) 55%,#8c6d3f);
-      box-shadow:0 0 0 1px rgba(201,168,76,.4), 0 6px 20px rgba(201,168,76,.28); }
+    .mark{ display:block; height:64px; width:auto; margin:0 auto 22px; }
     .code{ font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:96px; line-height:1; color:var(--gold-hi); margin:0 }
     h1{ font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:30px; margin:6px 0 12px }
     p{ color:var(--muted); font-size:15.5px; line-height:1.6; margin:0 0 30px }
@@ -32,7 +33,7 @@
 </head>
 <body>
   <div class="box">
-    <div class="mark" aria-hidden="true"></div>
+    <a href="/" aria-label="Décante — нүүр хуудас"><img class="mark" src="/assets/logo-mark.svg" alt="" width="33" height="64" /></a>
     <p class="code">404</p>
     <h1>Хуудас олдсонгүй</h1>
     <p>Уучлаарай, таны хайсан хуудас байхгүй эсвэл зөөгдсөн байна. Нүүр хуудаснаас дуртай үнэрээ үргэлжлүүлэн сонгоорой.</p>

@@ -68,7 +68,8 @@
     root().innerHTML =
       '<div class="ad-gate">' +
         '<div class="ad-gate__card">' +
-          '<h1 class="ad-gate__logo">' + esc(PM.CONFIG.brand.name) + '</h1>' +
+          '<img class="ad-gate__mark" src="assets/logo-mark.svg" alt="" width="31" height="60" />' +
+          '<h1 class="ad-gate__logo ad-gate__logo--brand">' + esc(PM.CONFIG.brand.name) + '</h1>' +
           '<p class="ad-gate__sub">Админ самбарт нэвтрэх</p>' +
           (errMsg ? '<p class="auth__err">' + esc(errMsg) + "</p>" : "") +
           '<form id="ad-login">' +
@@ -153,10 +154,11 @@
 
     root().innerHTML =
       '<header class="ad-topbar">' +
-        '<div class="ad-brand"><span class="logo__mark"></span>' +
+        '<div class="ad-brand"><img class="ad-brand__mark" src="assets/logo-mark.svg" alt="" width="18" height="34" />' +
           '<span class="ad-brand__name">' + esc(PM.CONFIG.brand.name) + ' <em>Админ</em></span></div>' +
         '<div class="ad-topbar__right">' +
-          '<a class="btn btn--text btn--sm" href="/" target="_blank" rel="noopener">Дэлгүүр ↗</a>' +
+          '<a class="btn btn--text btn--sm" href="/" target="_blank" rel="noopener" title="Дэлгүүр" aria-label="Дэлгүүр (шинэ цонхонд)">' +
+            '<span class="ad-shop-txt">Дэлгүүр </span>↗</a>' +
           '<span class="ad-user">' + esc(state.user.name) + "</span>" +
           '<button class="btn btn--outline btn--sm" data-ad="logout">Гарах</button>' +
         "</div>" +

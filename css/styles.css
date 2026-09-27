@@ -228,19 +228,14 @@ h1, h2, h3, h4 {
   width: 100%;
 }
 
-.logo { display: inline-flex; align-items: center; gap: 12px; }
-.logo__mark {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 30%, var(--gold) 0%, var(--gold-dark) 70%);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), var(--shadow-sm);
-  flex: none;
-}
-.logo__text { display: flex; flex-direction: column; line-height: 1.05; }
-.logo__name { font-family: var(--font-display); font-size: 22px; font-weight: 600; }
-.logo__sub {
-  font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
-  color: var(--muted);
+/* Лого: арт-деко флаконы тэмдэг + DÉCANTE (том үсэг, өргөн зайтай) */
+.logo { display: inline-flex; align-items: center; gap: 13px; }
+.logo__mark { display: block; flex: none; width: auto; height: 40px; }
+.logo__name {
+  font-family: var(--font-display); font-size: 21px; font-weight: 600; line-height: 1;
+  letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase;
+  color: #e3c77a;                  /* логоны нэрийн алт */
+  position: relative; top: 3px;   /* флаконы биетэй оптик төвлөрөл */
 }
 
 .nav { display: flex; align-items: center; gap: 30px; }
@@ -766,7 +761,9 @@ h1, h2, h3, h4 {
   gap: 34px;
   padding-bottom: 44px;
 }
-.footer__brand .logo__name { color: #fff; font-size: 26px; }
+.footer__brand .logo { gap: 15px; }
+.footer__brand .logo__mark { height: 50px; }
+.footer__brand .logo__name { font-size: 25px; top: 4px; }
 .footer__brand p { margin: 12px 0 0; font-size: 14.5px; max-width: 320px; color: #a89f92; }
 .footer__col h4 { color: #fff; font-family: var(--font-body); font-size: 14px; letter-spacing: .04em; margin-bottom: 14px; }
 .footer__col a, .footer__col span {
@@ -991,7 +988,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 @media (max-width: 900px) {
   .hero__inner { grid-template-columns: 1fr; }
   .hero__visual { display: none; }
-  .why { grid-template-columns: 1fr; gap: 34px; }
+  .why { grid-template-columns: minmax(0, 1fr); gap: 34px; }
   .why__media { min-height: 260px; }
   .order { grid-template-columns: 1fr; gap: 32px; }
   .reviews { grid-template-columns: 1fr; }
@@ -1046,6 +1043,18 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   .size-chip { padding: 7px 4px; font-size: 12px; }
   .hero__stats { gap: 24px; }
   .features__grid { grid-template-columns: 1fr; }
+
+  /* Жижиг утсанд (360px) толгойн лого багтах */
+  .header__inner { gap: 12px; }
+  .header .logo { gap: 9px; flex: none; }
+  .header .logo__mark { height: 34px; }
+  .header .logo__name { font-size: 17.5px; letter-spacing: .16em; margin-right: -.16em; top: 2px; }
+
+  /* "Яагаад декант" зураглал 360px-д халихгүй */
+  .why__media { padding: 40px 16px; gap: 14px; }
+  .why__big { width: 88px; height: 150px; }
+  .why__minis { gap: 8px; }
+  .why__minis span { width: 28px; }
 }
 
 /* Хөдөлгөөн багасгах горим */
@@ -1192,7 +1201,6 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 /* --- Толгой: бараан frosted --- */
 .header { background: rgba(10,10,12,.72); }
 .header.is-scrolled { background: rgba(10,10,12,.9); }
-.logo__sub { color: var(--gold); }
 .cart-count { color: #16130a; }
 .account__avatar { color: #16130a; }
 

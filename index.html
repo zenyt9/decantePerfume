@@ -6,8 +6,11 @@
   <title>Décante — Ориг үнэртэй ус, жижиг савлагаагаар</title>
   <meta name="description" content="Ориг брэндийн үнэртэй усыг 5, 10, 20, 50, 100 мл жижиг савлагаагаар (decant). 100% ориг, боломжийн үнэ, Улаанбаатарт хурдан хүргэлт." />
   <link rel="canonical" href="https://decanteperfume.com/" />
-  <meta name="theme-color" content="#6d3ce0" />
+  <meta name="theme-color" content="#0d0d0f" />
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/site.webmanifest" />
 
   <!-- Open Graph (Facebook, Messenger, LinkedIn г.м) -->
   <meta property="og:type" content="website" />
@@ -16,7 +19,8 @@
   <meta property="og:title" content="Décante — Ориг үнэртэй ус, жижиг савлагаагаар" />
   <meta property="og:description" content="Ориг брэндийн үнэртэй усыг 5–100 мл жижиг савлагаагаар. 100% ориг, боломжийн үнэ, хурдан хүргэлт." />
   <meta property="og:url" content="https://decanteperfume.com/" />
-  <meta property="og:image" content="https://decanteperfume.com/assets/og-image.svg" />
+  <meta property="og:image" content="https://decanteperfume.com/assets/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Décante — үнэртэй ус жижиг савлагаагаар" />
@@ -25,7 +29,18 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Décante — Ориг үнэртэй ус, жижиг савлагаагаар" />
   <meta name="twitter:description" content="Ориг брэндийн үнэртэй усыг 5–100 мл жижиг савлагаагаар. 100% ориг, боломжийн үнэ, хурдан хүргэлт." />
-  <meta name="twitter:image" content="https://decanteperfume.com/assets/og-image.svg" />
+  <meta name="twitter:image" content="https://decanteperfume.com/assets/og-image.png" />
+
+  <!-- Байгууллагын мэдээлэл (Google хайлтад лого харуулахад) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Décante",
+    "url": "https://decanteperfume.com/",
+    "logo": "https://decanteperfume.com/assets/icon-512.png"
+  }
+  </script>
 
   <!-- Фонт -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,11 +55,8 @@
   <header class="header" id="site-header">
     <div class="container header__inner">
       <a href="#top" class="logo" data-action="home" aria-label="Нүүр хуудас">
-        <span class="logo__mark" aria-hidden="true"></span>
-        <span class="logo__text">
-          <span class="logo__name" data-brand>Décante</span>
-          <span class="logo__sub">Үнэрийн ателье</span>
-        </span>
+        <img class="logo__mark" src="assets/logo-mark.svg" alt="" width="21" height="40" />
+        <span class="logo__name" data-brand>Décante</span>
       </a>
 
       <nav class="nav" id="primary-nav" aria-label="Үндсэн цэс">
@@ -340,7 +352,10 @@
   <footer class="footer">
     <div class="container footer__grid">
       <div class="footer__brand">
-        <span class="logo__name" data-brand>Décante</span>
+        <span class="logo">
+          <img class="logo__mark" src="assets/logo-mark.svg" alt="" width="26" height="50" />
+          <span class="logo__name" data-brand>Décante</span>
+        </span>
         <p>Ориг үнэртэй ус, жижиг савлагаагаар. Тансаг үнэрийг хүн бүрт хүртээмжтэйгээр.</p>
       </div>
       <div class="footer__col">
