@@ -26,7 +26,7 @@ PM.CONFIG = {
     phoneHref: "tel:+97650569921",   // Утсаар шууд залгах холбоос
     // Мессенжерийн шууд холбоос (Facebook хуудасны ID-гаар)
     messenger: "https://m.me/61594090179905",
-    instagram: "",
+    instagram: "https://www.instagram.com/decanteperfume71/",
     facebook: "https://www.facebook.com/profile.php?id=61594090179905",
     email: "",
     address: "Зөвхөн хүргэлтээр",
