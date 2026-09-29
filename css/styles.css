@@ -1348,3 +1348,25 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   .cookie-banner { flex-direction: column; align-items: stretch; }
   .cookie-banner__actions .btn { flex: 1; }
 }
+
+/* ==================================================================== */
+/*  24. ОНЛАЙН ТӨЛБӨР (QPay · Wire)                                      */
+/* ==================================================================== */
+.paystate .checkout__actions { margin-top: 6px; display: grid; gap: 8px; }
+.paystate__spin {
+  width: 46px; height: 46px; margin: 4px auto 18px; border-radius: 50%;
+  border: 3px solid rgba(201,168,76,.22); border-top-color: var(--gold);
+  animation: paystate-spin .9s linear infinite;
+}
+@keyframes paystate-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .paystate__spin { animation-duration: 3s; } }
+.checkout__badge--warn { background: rgba(227,168,76,.16); color: #e3b25c; }
+
+.paytag {
+  display: inline-block; margin-left: 8px; vertical-align: middle;
+  font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+}
+.pay-paid    { background: rgba(74,197,126,.15); color: #6fd79a; }
+.pay-pending { background: rgba(227,168,76,.16); color: #e3b25c; }
+.pay-expired { background: rgba(255,255,255,.07); color: var(--muted); }
+.myorder__pay { margin-top: 10px; }

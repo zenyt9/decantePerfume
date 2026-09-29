@@ -376,6 +376,22 @@ PM.ui = (function () {
     return '<span class="status ' + s.cls + '">' + esc(s.label) + "</span>";
   }
 
+  /* Төлбөрийн төлвийн жижиг шошго (онлайн төлбөртэй захиалгад) */
+  function paymentBadge(order) {
+    var p = order && order.payment;
+    if (!p || p.method !== "qpay") return "";
+    var map = {
+      paid:      { cls: "pay-paid",    label: p.paidManually ? "Төлсөн" : "Төлсөн · QPay" },
+      pending:   { cls: "pay-pending", label: "Төлбөр хүлээгдэж буй" },
+      expired:   { cls: "pay-expired", label: "Төлбөрийн хугацаа дууссан" },
+      cancelled: { cls: "pay-expired", label: "Цуцлагдсан" },
+    };
+    var s = map[p.status];
+    if (!s) return "";
+    return ' <span class="paytag ' + s.cls + '">' + esc(s.label) + "</span>" +
+      (p.livemode === false ? ' <span class="paytag pay-expired">ТЕСТ</span>' : "");
+  }
+
   function formatDate(ts) {
     var d = new Date(ts);
     if (isNaN(d.getTime())) return "";
@@ -402,6 +418,7 @@ PM.ui = (function () {
     genderLabel: genderLabel,
     statusInfo: statusInfo,
     statusBadge: statusBadge,
+    paymentBadge: paymentBadge,
     formatDate: formatDate,
     orderItemsLine: orderItemsLine,
   };

@@ -149,12 +149,190 @@
       PM.cart.clear();
       form.reset();
       closeCart();
-      showOrderSuccess(r.order);
+      // Сервер төлбөрийн хэлбэрийг шийднэ: QPay идэвхтэй бол шууд төлбөрийн хуудас руу
+      var pay = r.order && r.order.payment;
+      if (pay && pay.method === "qpay") startPayment(r.order.id);
+      else showOrderSuccess(r.order);
     } catch (err) {
       u.toast(err.message, "error");
     } finally {
       if (btn) btn.disabled = false;
     }
+  }
+
+  /* ================================================================== */
+  /*  Онлайн төлбөр (QPay · Wire-ээр)                                     */
+  /* ================================================================== */
+  /* QPay идэвхтэй бол захиалгын товч, тайлбарыг төлбөрийн урсгалд тааруулна */
+  function loadPayConfig() {
+    PM.api.get("/settings").then(function (s) {
+      if (!s || !s.payments || !s.payments.qpay) return;
+      var btn = u.qs("#order-submit");
+      var hint = u.qs("#order-hint");
+      if (btn) btn.textContent = "Захиалаад QPay-ээр төлөх";
+      if (hint) hint.textContent = s.payments.testMode
+        ? "* ТЕСТ горим (зөвхөн админд харагдана): төлбөр sandbox-оор явж, бодит мөнгө хөдлөхгүй."
+        : "* Товч дарахад QPay-ийн төлбөрийн хуудас нээгдэнэ. Банкны апп эсвэл QR кодоор төлнө.";
+    }).catch(function () {});
+  }
+
+  function payModal(inner) {
+    PM.modal.open('<div class="checkout paystate">' + inner + "</div>");
+  }
+
+  /* Төлөв шалгах давталт — нэг л давталт идэвхтэй байна (token-оор хуучныг зогсооно) */
+  var payPoll = null;
+  var pollToken = 0;
+  function stopPoll() {
+    pollToken++;
+    if (payPoll) clearTimeout(payPoll);
+    payPoll = null;
+  }
+
+  /** Төлбөрийн хуудас (pay.wire.mn) руу шилжүүлэх */
+  async function startPayment(orderId) {
+    stopPoll();
+    payModal(
+      '<div class="paystate__spin" aria-hidden="true"></div>' +
+      '<h3 class="checkout__title">QPay руу шилжиж байна…</h3>' +
+      '<p class="checkout__lead">Төлбөрийн хуудас нээгдэж байна. Түр хүлээнэ үү.</p>'
+    );
+    try {
+      var r = await PM.api.post("/orders/" + encodeURIComponent(orderId) + "/pay", {});
+      if (r.paid) return checkPaymentReturn(orderId);
+      if (r.url && /^https:\/\//.test(r.url)) { window.location.href = r.url; return; }
+      throw new Error("Төлбөрийн холбоос олдсонгүй.");
+    } catch (err) {
+      payModal(
+        '<div class="checkout__badge checkout__badge--warn" aria-hidden="true">!</div>' +
+        '<h3 class="checkout__title">Төлбөрийн хуудас нээгдсэнгүй</h3>' +
+        '<p class="checkout__lead">' + u.escapeHtml(err.message) + "<br />" +
+          "Таны захиалга хадгалагдсан. Дахин оролдох эсвэл бидэнтэй холбогдоно уу.</p>" +
+        '<div class="checkout__actions">' +
+          '<button type="button" class="btn btn--solid btn--block" data-action="pay-order" data-id="' +
+            u.escapeHtml(orderId) + '">Дахин оролдох</button>' +
+          '<button type="button" class="btn btn--text btn--block" data-action="open-orders">Миний захиалга</button>' +
+        "</div>"
+      );
+    }
+  }
+
+  /**
+   * Төлбөрийн хуудаснаас буцаж ирэхэд (?order=ID) төлөвийг шалгана.
+   * Төлбөр банкнаас хэдэн секундийн дараа баталгаажиж болох тул хэсэг хугацаанд poll хийнэ.
+   */
+  function checkPaymentReturn(orderId) {
+    stopPoll();
+    var token = pollToken;
+    var tries = 0, fails = 0;
+    var MAX_TRIES = 40; // ~2 минут
+    payModal(
+      '<div class="paystate__spin" aria-hidden="true"></div>' +
+      '<h3 class="checkout__title">Төлбөрийг шалгаж байна…</h3>' +
+      '<p class="checkout__lead">Түр хүлээнэ үү.</p>'
+    );
+    var tick = async function () {
+      if (token !== pollToken) return;
+      tries++;
+      var s;
+      try {
+        s = await PM.api.get("/orders/" + encodeURIComponent(orderId) + "/payment");
+        fails = 0;
+      } catch (err) {
+        fails++;
+        if (token !== pollToken) return;
+        if (err.status === 401 || err.status === 404 || tries >= MAX_TRIES) {
+          payModal('<h3 class="checkout__title">Төлбөр шалгахад алдаа гарлаа</h3>' +
+            '<p class="checkout__lead">' + u.escapeHtml(err.message) + "</p>" +
+            '<div class="checkout__actions"><button type="button" class="btn btn--solid btn--block" data-action="open-orders">Миний захиалга</button></div>');
+          return;
+        }
+        // Сүлжээ түр тасарсан — зөөлөн мэдэгдээд дахин оролдоно
+        if (fails >= 3) payModal('<div class="paystate__spin" aria-hidden="true"></div>' +
+          '<h3 class="checkout__title">Холболт тасарлаа…</h3>' +
+          '<p class="checkout__lead">Дахин шалгаж байна. Төлсөн бол таны төлбөр хадгалагдсан — санаа зовох хэрэггүй.</p>');
+        payPoll = setTimeout(tick, Math.min(15000, 3000 * fails));
+        return;
+      }
+      // Хэрэглэгч цонхыг хаасан эсвэл өөр үйлдэл эхлүүлсэн бол зогсооно
+      if (token !== pollToken) return;
+      if (tries > 1 && !u.qs(".paystate")) { stopPoll(); return; }
+      if (s.status === "paid") return showPaid(s);
+      if (s.status === "expired" || s.orderStatus === "cancelled") return showExpired(s);
+      showPending(s, tries >= MAX_TRIES);
+      if (tries < MAX_TRIES) payPoll = setTimeout(tick, 3000);
+    };
+    tick();
+  }
+
+  function showPaid(s) {
+    stopPoll();
+    payModal(
+      '<div class="checkout__badge" aria-hidden="true">✓</div>' +
+      '<h3 class="checkout__title">Төлбөр амжилттай!</h3>' +
+      '<p class="checkout__lead">Захиалга <b>' + u.escapeHtml(s.code) + "</b> · " + u.formatPrice(s.total) +
+        " төлөгдлөө." + (s.test ? " <b>(ТЕСТ — бодит мөнгө хөдлөөгүй)</b>" : "") +
+        "<br />Баталгаажуулах и-мэйл илгээлээ. Бид тун удахгүй холбогдож хүргэлтийг тохирно.</p>" +
+      '<div class="checkout__actions">' +
+        '<button type="button" class="btn btn--solid btn--block" data-action="open-orders">Миний захиалга</button>' +
+        '<button type="button" class="btn btn--text btn--block" data-action="close-modal">Дэлгүүр үргэлжлүүлэх</button>' +
+      "</div>"
+    );
+  }
+
+  function showExpired(s) {
+    stopPoll();
+    payModal(
+      '<div class="checkout__badge checkout__badge--warn" aria-hidden="true">!</div>' +
+      '<h3 class="checkout__title">Захиалга цуцлагдсан</h3>' +
+      '<p class="checkout__lead">Захиалга <b>' + u.escapeHtml(s.code) + "</b>-ийн төлбөр хугацаандаа хийгдээгүй тул цуцлагдлаа. " +
+        "Хүсвэл бараагаа дахин сагслаад шинээр захиалаарай.</p>" +
+      '<div class="checkout__actions"><button type="button" class="btn btn--solid btn--block" data-action="close-modal">Ойлголоо</button></div>'
+    );
+  }
+
+  function showPending(s, gaveUp) {
+    // processing — банк баталгаажуулж байна; requires_action — нэхэмжлэх нээлттэй, төлөөгүй байж болно
+    var processing = s.intentStatus === "processing";
+    var open = s.intentStatus === "requires_action";
+    var title = processing ? "Төлбөр баталгаажиж байна…"
+      : open ? "Төлбөрийн нэхэмжлэх нээлттэй байна"
+      : "Төлбөр хийгдээгүй байна";
+    var text = processing
+      ? "Банк төлбөрийг баталгаажуулж байна. Энэ цонхыг хаасан ч төлбөр орж ирэхэд захиалга автоматаар баталгаажна."
+      : open
+        ? "Банкны аппаараа төлсөн бол хэдэн секунд хүлээнэ үү — автоматаар шинэчлэгдэнэ. Төлөөгүй бол доорх товчоор төлбөрийн хуудсаа дахин нээнэ үү."
+        : "Хэрэв та төлсөн бол хэдэн секунд хүлээнэ үү — автоматаар шинэчлэгдэнэ. Төлөөгүй бол доорх товчоор төлнө үү.";
+    payModal(
+      (gaveUp ? "" : '<div class="paystate__spin" aria-hidden="true"></div>') +
+      '<h3 class="checkout__title">' + title + "</h3>" +
+      '<p class="checkout__lead">Захиалга <b>' + u.escapeHtml(s.code) + "</b> · " + u.formatPrice(s.total) + "<br />" + text + "</p>" +
+      '<div class="checkout__actions">' +
+        (s.canRetry && !processing
+          ? '<button type="button" class="btn btn--solid btn--block" data-action="pay-order" data-id="' +
+              u.escapeHtml(s.orderId) + '">' + (open ? "Төлбөрийн хуудсыг нээх" : "QPay-ээр төлөх") + "</button>"
+          : "") +
+        '<button type="button" class="btn btn--text btn--block" data-action="open-orders">Миний захиалга</button>' +
+      "</div>"
+    );
+  }
+
+  /* Төлбөрийн хуудаснаас буцаж ирсэн эсэх (?order=ID) — URL-ийг цэвэрлээд шалгана */
+  function handlePaymentReturn() {
+    var params = new URLSearchParams(window.location.search);
+    var orderId = params.get("order");
+    if (!orderId || !/^order_[a-f0-9]+$/.test(orderId)) return;
+    params.delete("order");
+    var qs = params.toString();
+    history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : "") + window.location.hash);
+    if (!PM.session.isAuthed()) {
+      PM.session.openAuth({
+        message: "Төлбөрийн төлвийг харахын тулд нэвтэрнэ үү.",
+        onSuccess: function () { checkPaymentReturn(orderId); },
+      });
+      return;
+    }
+    checkPaymentReturn(orderId);
   }
 
   /** Захиалгыг текстээр (мессенжерт илгээх / хуулах) */
@@ -275,6 +453,10 @@
       case "checkout":
         closeCart();
         scrollTo("#order");
+        break;
+
+      case "pay-order":
+        startPayment(actEl.getAttribute("data-id"));
         break;
 
       case "copy-order": {
@@ -439,6 +621,7 @@
     fillConfigText();
     renderStats();
     renderReviews();
+    loadPayConfig();
 
     // Сагс өөрчлөгдөх бүрд дэлгэц шинэчлэх
     PM.cart.subscribe(PM.ui.renderCart);
@@ -455,6 +638,8 @@
         '<p class="load-error">Бараа ачаалахад алдаа гарлаа. Сервер асаалттай эсэхийг шалгана уу.<br />' +
         u.escapeHtml(err.message) + "</p>";
     }
+    // QPay-ийн төлбөрийн хуудаснаас буцаж ирсэн бол төлөвийг шалгана
+    handlePaymentReturn();
 
     // Эвдэрсэн бүтээгдэхүүний зургийг нуух (CSP-д тохирсон, capture фазд)
     document.addEventListener("error", function (e) {

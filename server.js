@@ -14,6 +14,12 @@ const path = require("path");
 
 const { ensureSeeded } = require("./lib/seed");
 const { handleApi } = require("./lib/api");
+const payments = require("./lib/payments");
+
+// Барьж амжаагүй promise алдаа серверийг унагахгүй — логлоод үргэлжилнэ
+process.on("unhandledRejection", (err) => {
+  console.error("Барьж амжаагүй алдаа (unhandledRejection):", err);
+});
 
 const ROOT = path.resolve(__dirname);
 const PORT = process.env.PORT || 4173;
@@ -144,22 +150,36 @@ function serveStatic(req, res, pathname) {
 /* ------------------------------------------------------------------ */
 ensureSeeded();
 
-const server = http.createServer((req, res) => {
-  setSecurityHeaders(res);
-  let parsed;
-  try {
-    parsed = new URL(req.url, "http://localhost");
-  } catch (e) {
-    res.writeHead(400);
-    return res.end("Bad request");
-  }
-  const pathname = decodeURIComponent(parsed.pathname);
-  const query = Object.fromEntries(parsed.searchParams);
+function badRequest(res) {
+  res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("Bad request");
+}
 
-  if (pathname.startsWith("/api/")) {
-    return handleApi(req, res, pathname, query);
+const server = http.createServer((req, res) => {
+  // Аливаа гэнэтийн (synchronous) алдаа процессыг унагахгүй — 500 буцаана
+  try {
+    setSecurityHeaders(res);
+    let parsed, pathname;
+    try {
+      parsed = new URL(req.url, "http://localhost");
+      // "/%ZZ" мэт буруу кодлолтой зам decodeURIComponent-ийг шидүүлнэ
+      pathname = decodeURIComponent(parsed.pathname);
+    } catch (e) {
+      return badRequest(res);
+    }
+    const query = Object.fromEntries(parsed.searchParams);
+
+    if (pathname.startsWith("/api/")) {
+      return handleApi(req, res, pathname, query);
+    }
+    return serveStatic(req, res, pathname);
+  } catch (err) {
+    console.error("Хүсэлт боловсруулах алдаа:", err);
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Server error");
+    }
   }
-  return serveStatic(req, res, pathname);
 });
 
 server.listen(PORT, () => {
@@ -167,5 +187,6 @@ server.listen(PORT, () => {
   console.log("  Décante сервер аслаа →  http://localhost:" + PORT);
   console.log("  Дэлгүүр:      http://localhost:" + PORT + "/");
   console.log("  Админ самбар: http://localhost:" + PORT + "/admin");
+  payments.startReconciler();
   console.log("");
 });

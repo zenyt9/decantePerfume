@@ -480,13 +480,33 @@
       "</tr>";
   }
 
+  /* Төлбөрийн шошго: онлайн (QPay) эсвэл гараар */
+  var PAY = {
+    paid:      { label: "QPay · Төлсөн",           cls: "tag--paid" },
+    pending:   { label: "QPay · Хүлээгдэж буй",    cls: "tag--pending" },
+    expired:   { label: "QPay · Хугацаа дууссан",  cls: "tag--muted" },
+    cancelled: { label: "QPay · Цуцлагдсан",       cls: "tag--muted" },
+  };
+  function payTag(o) {
+    var p = o.payment;
+    if (!p || p.method !== "qpay") return '<span class="tag tag--muted">Гараар</span>';
+    var s = PAY[p.status] || { label: "QPay", cls: "tag--muted" };
+    var label = s.label;
+    if (p.status === "paid" && p.paidManually) label = "Гараар хүлээн авсан";
+    var html = '<span class="tag ' + s.cls + '">' + esc(label) + "</span>";
+    // ТЕСТ төлбөр — бодит мөнгө ороогүй; хүргэж болохгүй
+    if (p.livemode === false) html += '<span class="tag tag--test">ТЕСТ</span>';
+    if (p.refundNeeded) html += '<span class="tag tag--off">Буцаан олгох</span>';
+    return html;
+  }
+
   function orderRowFull(o) {
     return "<tr>" +
       "<td><b>" + esc(o.code) + "</b></td>" +
       "<td>" + esc(dateStr(o.createdAt)) + "</td>" +
       "<td>" + esc(o.customer.name) + '<br /><span class="ad-muted">' + esc(o.customer.phone) + "</span></td>" +
       "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
-      "<td><b>" + fmt(o.total) + "</b></td>" +
+      "<td><b>" + fmt(o.total) + "</b><br />" + payTag(o) + "</td>" +
       "<td>" + statusSelect(o) + "</td>" +
       '<td class="ad-actions"><button class="btn btn--text btn--sm" data-ad="order-view" data-id="' + o.id + '">Дэлгэрэнгүй</button></td>' +
       "</tr>";
@@ -561,7 +581,17 @@
           "<div><span>Барааны дүн</span><b>" + fmt(o.subtotal) + "</b></div>" +
           "<div><span>Хүргэлт</span><b>" + (o.deliveryFee === 0 ? "Үнэгүй" : fmt(o.deliveryFee)) + "</b></div>" +
           '<div class="ad-sum__total"><span>Нийт</span><b>' + fmt(o.total) + "</b></div>" +
+          "<div><span>Төлбөр</span><b>" + payTag(o) + "</b></div>" +
+          (o.payment && o.payment.paidAt
+            ? "<div><span>Төлсөн огноо</span><b>" + esc(dateStr(o.payment.paidAt)) + "</b></div>" : "") +
+          (o.payment && o.payment.intentId
+            ? '<div><span>Wire гүйлгээ</span><b class="ad-mono">' + esc(o.payment.intentId) + "</b></div>" : "") +
         "</div>" +
+        (o.payment && o.payment.method === "qpay" && o.payment.status === "pending" && o.status !== "cancelled"
+          ? '<div class="ad-payact"><p class="ad-muted">Захиалагч QPay-ээр төлөөгүй ч данс/бэлнээр төлсөн бол:</p>' +
+              '<button type="button" class="btn btn--outline btn--sm" data-ad="order-mark-paid" data-id="' + esc(o.id) + '">' +
+              "Төлбөрийг гараар хүлээн авсан</button></div>"
+          : "") +
         '<form id="ad-order-form">' +
           '<h4 class="ad-subhead">Захиалагчийн мэдээлэл</h4>' +
           '<div class="ad-grid2">' +
@@ -716,6 +746,24 @@
       } catch (err) { u.toast(err.message, "error"); }
     });
   }
+  /* Онлайн захиалгын төлбөрийг гараар (данс/бэлэн) хүлээн авсныг тэмдэглэх */
+  function confirmMarkPaid(id) {
+    var o = getOrder(id);
+    if (!o) return;
+    confirmModal("Төлбөр хүлээн авсан уу?",
+      "Захиалга " + o.code + " · " + fmt(o.total) + " — мөнгө танд данс эсвэл бэлнээр орж ирснийг баталгаажуулна уу. " +
+      "QPay-ийн нээлттэй нэхэмжлэх хаагдаж, захиалагчид баталгаажуулах и-мэйл очно.",
+      async function () {
+        try {
+          await PM.api.patch("/orders/" + id, { paymentReceived: true });
+          await Promise.all([reloadOrders(), reloadStats()]);
+          adClose();
+          u.toast("Төлбөр хүлээн авсан гэж тэмдэглэлээ", "success");
+          renderOrders();
+        } catch (err) { adClose(); u.toast(err.message, "error"); }
+      }, "Тийм, хүлээн авсан");
+  }
+
   function confirmDeleteReview(id) {
     confirmModal("Сэтгэгдэл устгах уу?", "Энэ сэтгэгдлийг нүүр хуудаснаас бүрмөсөн устгана.", async function () {
       try {
@@ -770,13 +818,14 @@
   /* ================================================================== */
   /*  Баталгаажуулах modal                                              */
   /* ================================================================== */
-  function confirmModal(title, msg, onYes) {
+  function confirmModal(title, msg, onYes, yesLabel) {
     adOpen(
       '<div class="ad-confirm">' +
         "<h3>" + esc(title) + "</h3><p>" + esc(msg) + "</p>" +
         '<div class="ad-form-foot">' +
           '<button type="button" class="btn btn--text" data-ad="close-modal">Болих</button>' +
-          '<button type="button" class="btn btn--solid ad-danger-btn" id="ad-confirm-yes">Тийм, устга</button>' +
+          '<button type="button" class="btn btn--solid' + (yesLabel ? "" : " ad-danger-btn") + '" id="ad-confirm-yes">' +
+            esc(yesLabel || "Тийм, устга") + "</button>" +
         "</div>" +
       "</div>"
     );
@@ -819,6 +868,7 @@
       case "product-delete": confirmDeleteProduct(id); break;
       case "brand-delete": confirmDeleteBrand(id); break;
       case "order-view": openOrderDetail(id); break;
+      case "order-mark-paid": confirmMarkPaid(id); break;
       case "customer-view": openCustomerDetail(id); break;
       case "review-delete": confirmDeleteReview(id); break;
       case "change-password": openPasswordChange(); break;

@@ -424,13 +424,24 @@ PM.session = (function () {
             "</div>" +
             '<p class="myorder__date">' + esc(PM.ui.formatDate(o.createdAt)) + "</p>" +
             '<p class="myorder__items">' + PM.ui.orderItemsLine(o) + "</p>" +
-            '<p class="myorder__total">Нийт: <b>' + PM.utils.formatPrice(o.total) + "</b></p>" +
+            '<p class="myorder__total">Нийт: <b>' + PM.utils.formatPrice(o.total) + "</b>" +
+              PM.ui.paymentBadge(o) + "</p>" +
+            (canPay(o)
+              ? '<button type="button" class="btn btn--solid btn--sm myorder__pay" data-action="pay-order" data-id="' +
+                  esc(o.id) + '">QPay-ээр төлөх</button>'
+              : "") +
           "</div>"
         );
       }).join("") + "</div>";
     }
     PM.modal.open('<div class="orders-view"><h3 class="modal__title">Миний захиалга</h3>' +
       body + "</div>", { wide: true });
+  }
+
+  /* Онлайн төлбөр хүлээгдэж буй захиалга — хугацаа дууссан эсэхийг сервер шийднэ */
+  function canPay(o) {
+    return !!(o.payment && o.payment.method === "qpay" && o.payment.status === "pending" &&
+      o.status !== "cancelled");
   }
 
   function esc(s) { return PM.utils.escapeHtml(s); }
