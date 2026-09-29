@@ -67,7 +67,7 @@ PM.ui = (function () {
   }
 
   /* ------------------------------------------------------------------ */
-  /*  Хэмжээ сонгогч (5 / 10 / 20 мл товчнууд)                            */
+  /*  Хэмжээ сонгогч (5–100 мл товчнууд)                                  */
   /* ------------------------------------------------------------------ */
   function sizeChips(product, selectedMl) {
     return PM.CONFIG.sizes.map(function (s) {
@@ -166,15 +166,15 @@ PM.ui = (function () {
             ' <span class="cart-line__size">' + li.ml + " мл</span></p>" +
           '<p class="cart-line__brand">' + esc(p.brand) + "</p>" +
           '<div class="qty" role="group" aria-label="Тоо ширхэг">' +
-            '<button type="button" class="qty__btn" data-action="dec" aria-label="Хасах">−</button>' +
+            '<button type="button" class="qty__btn" data-action="dec" aria-label="Нэгээр хасах">−</button>' +
             '<span class="qty__val">' + li.qty + "</span>" +
-            '<button type="button" class="qty__btn" data-action="inc" aria-label="Нэмэх">+</button>' +
+            '<button type="button" class="qty__btn" data-action="inc" aria-label="Нэгээр нэмэх">+</button>' +
           "</div>" +
         "</div>" +
         '<div class="cart-line__right">' +
           '<span class="cart-line__total">' + fmt(li.lineTotal) + "</span>" +
           '<button type="button" class="cart-line__remove" data-action="remove" ' +
-            'aria-label="Устгах">Устгах</button>' +
+            'aria-label="Сагснаас устгах">Устгах</button>' +
         "</div>" +
       "</li>"
     );
@@ -202,9 +202,9 @@ PM.ui = (function () {
       body.innerHTML =
         '<div class="cart-empty">' +
           '<div class="cart-empty__icon" aria-hidden="true"></div>' +
-          "<p>Таны сагс хоосон байна.</p>" +
+          "<p>Таны сагс одоогоор хоосон байна.</p>" +
           '<button type="button" class="btn btn--outline" data-action="close-cart">' +
-            "Дэлгүүр үзэх" +
+            "Үнэр сонгох" +
           "</button>" +
         "</div>";
       if (footer) footer.hidden = true;
@@ -224,9 +224,9 @@ PM.ui = (function () {
         ? '<span class="ship-free">Үнэгүй</span>'
         : fmt(state.deliveryFee);
       var hint = remain > 0
-        ? '<p class="cart-hint">' + fmt(remain) +
-          " нэмж авбал хүргэлт <b>үнэгүй</b>.</p>"
-        : '<p class="cart-hint cart-hint--ok">Хүргэлт үнэгүй боллоо 🎉</p>';
+        ? '<p class="cart-hint">Дахиад ' + fmt(remain) +
+          " нэмж захиалбал хүргэлт <b>үнэгүй</b> болно.</p>"
+        : '<p class="cart-hint cart-hint--ok">Таны хүргэлт үнэгүй боллоо.</p>';
 
       footer.innerHTML =
         hint +
@@ -269,13 +269,13 @@ PM.ui = (function () {
     if (!pick.length) return "";
     return (
       '<div class="qv__similar">' +
-        '<p class="qv__similar-title">Төстэй үнэртнүүд</p>' +
+        '<p class="qv__similar-title">Танд бас таалагдаж магадгүй</p>' +
         '<div class="qv__sim-grid">' +
           pick.map(function (p) {
             return '<button type="button" class="qv-sim" data-action="quickview" data-id="' + esc(p.id) + '">' +
               '<span class="qv-sim__media" style="--accent:' + esc(p.accent) + '">' + productMedia(p) + "</span>" +
               '<span class="qv-sim__name">' + esc(p.name) + "</span>" +
-              '<span class="qv-sim__price">' + fmt(PM.products.minPrice(p)) + "-с</span>" +
+              '<span class="qv-sim__price">' + fmt(PM.products.minPrice(p)) + "-өөс</span>" +
             "</button>";
           }).join("") +
         "</div>" +
@@ -287,8 +287,8 @@ PM.ui = (function () {
     var sel = PM.CONFIG.defaultSize;
     var st = PM.products.stockInfo(product);
     var stockLine = st.soldOut
-      ? '<p class="qv__stock qv__stock--out">Одоогоор дууссан</p>'
-      : (st.tracked && st.left <= 5 ? '<p class="qv__stock">Үлдсэн: <b>' + st.left + "</b> ширхэг</p>" : "");
+      ? '<p class="qv__stock qv__stock--out">Одоогоор дууссан байна</p>'
+      : (st.tracked && st.left <= 5 ? '<p class="qv__stock">Ердөө <b>' + st.left + "</b> ширхэг үлдсэн байна</p>" : "");
     var addBtn = st.soldOut
       ? '<button type="button" class="btn btn--solid" disabled>Дууссан</button>'
       : '<button type="button" class="btn btn--solid" data-action="add-modal">Сагслах</button>';
@@ -339,7 +339,7 @@ PM.ui = (function () {
     state.lineItems.forEach(function (li, i) {
       lines.push(
         (i + 1) + ". " + li.product.brand + " " + li.product.name +
-        " · " + li.ml + "мл × " + li.qty + " = " + fmt(li.lineTotal)
+        " · " + li.ml + " мл × " + li.qty + " = " + fmt(li.lineTotal)
       );
     });
     lines.push("————————————————");
@@ -362,7 +362,7 @@ PM.ui = (function () {
   var STATUS = {
     new:        { label: "Шинэ",          cls: "st-new" },
     confirmed:  { label: "Баталгаажсан",  cls: "st-confirmed" },
-    delivering: { label: "Хүргэлтэд",     cls: "st-delivering" },
+    delivering: { label: "Хүргэлтэд гарсан", cls: "st-delivering" },
     done:       { label: "Дууссан",       cls: "st-done" },
     cancelled:  { label: "Цуцлагдсан",    cls: "st-cancelled" },
   };
@@ -382,7 +382,7 @@ PM.ui = (function () {
     if (!p || p.method !== "qpay") return "";
     var map = {
       paid:      { cls: "pay-paid",    label: p.paidManually ? "Төлсөн" : "Төлсөн · QPay" },
-      pending:   { cls: "pay-pending", label: "Төлбөр хүлээгдэж буй" },
+      pending:   { cls: "pay-pending", label: "Төлбөр хүлээгдэж байна" },
       expired:   { cls: "pay-expired", label: "Төлбөрийн хугацаа дууссан" },
       cancelled: { cls: "pay-expired", label: "Цуцлагдсан" },
     };
@@ -403,7 +403,7 @@ PM.ui = (function () {
   /** Захиалгын мөрүүдийг богино текстээр */
   function orderItemsLine(order) {
     return order.items.map(function (it) {
-      return it.brand + " " + it.name + " · " + it.ml + "мл × " + it.qty;
+      return it.brand + " " + it.name + " · " + it.ml + " мл × " + it.qty;
     }).join("<br />");
   }
 

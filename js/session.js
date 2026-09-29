@@ -54,7 +54,7 @@ PM.session = (function () {
   async function logout() {
     try { await PM.api.post("/auth/logout"); } catch (e) {}
     user = null; emit();
-    u.toast("Гарлаа", "info");
+    u.toast("Та гарлаа. Дахин уулзъя!", "info");
   }
   async function updateProfile(patch) {
     var r = await PM.api.patch("/auth/me", patch);
@@ -198,7 +198,7 @@ PM.session = (function () {
         if (isLogin) {
           await login(form.email.value.trim(), form.password.value);
           PM.modal.close();
-          u.toast("Тавтай морил, " + user.name.split(" ")[0] + "!", "success");
+          u.toast("Сайн байна уу, " + user.name.split(" ")[0] + "!", "success");
           runPending();
         } else {
           var r = await register({
@@ -207,7 +207,7 @@ PM.session = (function () {
             phone: form.phone.value.trim(),
             password: form.password.value,
           });
-          u.toast("Тавтай морил, " + user.name.split(" ")[0] + "!", "success");
+          u.toast("Тавтай морилно уу, " + user.name.split(" ")[0] + "!", "success");
           if (r && r.needsVerification) {
             openVerifyEmail(); // баталгаажуулсан/алгассаны дараа pending үйлдэл ажиллана
           } else {
@@ -227,8 +227,8 @@ PM.session = (function () {
     var email = user ? user.email : "";
     var html =
       '<div class="auth">' +
-        '<h3 class="modal__title">И-мэйл баталгаажуулах</h3>' +
-        '<p class="auth__note">Бид <b>' + esc(email) + '</b> хаяг руу 6 оронтой код илгээлээ. Кодоо оруулна уу.</p>' +
+        '<h3 class="modal__title">И-мэйл хаягаа баталгаажуулах</h3>' +
+        '<p class="auth__note">Бид <b>' + esc(email) + '</b> хаяг руу 6 оронтой код илгээлээ. Ирсэн кодоо доор оруулна уу. И-мэйл ирээгүй бол спам хавтсаа шалгаарай.</p>' +
         '<p class="auth__err" hidden></p>' +
         '<form data-verify-form>' +
           '<div class="field"><label>Баталгаажуулах код</label>' +
@@ -250,17 +250,17 @@ PM.session = (function () {
       try {
         await confirmEmail(form.code.value.trim());
         PM.modal.close();
-        u.toast("И-мэйл баталгаажлаа ✓", "success");
+        u.toast("И-мэйл хаяг тань баталгаажлаа.", "success");
         runPending();
       } catch (err) { errEl.textContent = err.message; errEl.hidden = false; btn.disabled = false; }
     });
     u.qs("[data-skip]").addEventListener("click", function () {
       PM.modal.close();
-      u.toast("И-мэйлээ дараа Профайлаас баталгаажуулж болно", "info");
+      u.toast("И-мэйлээ дараа нь “Профайл” хэсгээс баталгаажуулж болно.", "info");
       runPending();
     });
     u.qs("[data-resend]").addEventListener("click", async function () {
-      try { await sendCode("verify"); u.toast("Код дахин илгээлээ", "success"); }
+      try { await sendCode("verify"); u.toast("Кодыг дахин илгээлээ.", "success"); }
       catch (err) { u.toast(err.message, "error"); }
     });
   }
@@ -272,14 +272,14 @@ PM.session = (function () {
     var html =
       '<div class="auth">' +
         '<h3 class="modal__title">Нууц үг сэргээх</h3>' +
-        '<p class="auth__note">Бүртгэлтэй и-мэйлээ оруулбал бид код илгээнэ.</p>' +
+        '<p class="auth__note">Бүртгүүлсэн и-мэйл хаягаа оруулна уу. Бид нууц үг сэргээх код илгээнэ.</p>' +
         '<p class="auth__err" hidden></p>' +
         '<form data-forgot-email>' +
           '<div class="field"><label>И-мэйл</label>' +
             '<input type="email" name="email" required placeholder="tanii@mail.mn" value="' + esc(prefill) + '" /></div>' +
           '<button type="submit" class="btn btn--solid btn--block">Код авах</button>' +
         '</form>' +
-        '<div class="auth__row"><button type="button" class="auth__link" data-back-login>← Нэвтрэх рүү</button></div>' +
+        '<div class="auth__row"><button type="button" class="auth__link" data-back-login>← Нэвтрэх хэсэг рүү буцах</button></div>' +
       '</div>';
     PM.modal.open(html);
     u.qs("[data-back-login]").addEventListener("click", function () { renderAuth("login"); });
@@ -298,15 +298,15 @@ PM.session = (function () {
   function renderForgotStep2(email) {
     var html =
       '<div class="auth">' +
-        '<h3 class="modal__title">Шинэ нууц үг</h3>' +
-        '<p class="auth__note">Бид <b>' + esc(email) + '</b> руу код илгээлээ.</p>' +
+        '<h3 class="modal__title">Шинэ нууц үг үүсгэх</h3>' +
+        '<p class="auth__note">Бид <b>' + esc(email) + '</b> хаяг руу код илгээлээ. Кодоо оруулаад шинэ нууц үгээ үүсгэнэ үү.</p>' +
         '<p class="auth__err" hidden></p>' +
         '<form data-forgot-reset>' +
           '<div class="field"><label>Код</label>' +
             '<input name="code" inputmode="numeric" maxlength="6" placeholder="000000" class="otp-input" required /></div>' +
           '<div class="field"><label>Шинэ нууц үг</label>' +
             '<input type="password" name="newPassword" minlength="6" placeholder="Дор хаяж 6 тэмдэгт" required /></div>' +
-          '<button type="submit" class="btn btn--solid btn--block">Нууц үг шинэчлэх</button>' +
+          '<button type="submit" class="btn btn--solid btn--block">Нууц үгээ шинэчлэх</button>' +
         '</form>' +
         '<div class="auth__row auth__row--split">' +
           '<button type="button" class="auth__link" data-resend-reset>Код дахин илгээх</button>' +
@@ -316,7 +316,7 @@ PM.session = (function () {
     PM.modal.open(html);
     u.qs("[data-back-email]").addEventListener("click", function () { renderForgotStep1(email); });
     u.qs("[data-resend-reset]").addEventListener("click", async function () {
-      try { await sendCode("reset", email); u.toast("Код дахин илгээлээ", "success"); }
+      try { await sendCode("reset", email); u.toast("Кодыг дахин илгээлээ.", "success"); }
       catch (err) { u.toast(err.message, "error"); }
     });
     var form = u.qs("[data-forgot-reset]");
@@ -328,7 +328,7 @@ PM.session = (function () {
       try {
         await resetPassword(email, form.code.value.trim(), form.newPassword.value);
         PM.modal.close();
-        u.toast("Нууц үг шинэчлэгдэж, нэвтэрлээ ✓", "success");
+        u.toast("Нууц үг тань шинэчлэгдлээ. Та нэвтэрсэн байна.", "success");
         runPending();
       } catch (err) { errEl.textContent = err.message; errEl.hidden = false; btn.disabled = false; }
     });
@@ -356,7 +356,7 @@ PM.session = (function () {
           '<div class="field"><label>Хүргэлтийн хаяг</label>' +
             '<input type="text" name="address" value="' + esc(user.address || "") + '" placeholder="Дүүрэг, хороо, байр, тоот" /></div>' +
           '<hr class="profile__sep" />' +
-          '<p class="profile__hint">Нууц үг солих бол доорхийг бөглөнө (заавал биш):</p>' +
+          '<p class="profile__hint">Нууц үгээ солих бол доорх хоёр талбарыг бөглөнө үү. Солихгүй бол хоосон үлдээгээрэй.</p>' +
           '<div class="field"><label>Одоогийн нууц үг</label>' +
             '<input type="password" name="currentPassword" autocomplete="current-password" placeholder="••••••" /></div>' +
           '<div class="field"><label>Шинэ нууц үг</label>' +
@@ -389,7 +389,7 @@ PM.session = (function () {
       try {
         await updateProfile(patch);
         PM.modal.close();
-        u.toast("Профайл шинэчлэгдлээ", "success");
+        u.toast("Таны мэдээлэл хадгалагдлаа.", "success");
       } catch (err) {
         errEl.textContent = err.message; errEl.hidden = false;
       }
@@ -413,7 +413,7 @@ PM.session = (function () {
   function renderMyOrders(orders) {
     var body;
     if (!orders.length) {
-      body = '<p class="muted">Танд одоогоор захиалга алга байна.</p>';
+      body = '<p class="muted">Одоогоор захиалга алга байна. Дуртай үнэрээ сонгоод анхны захиалгаа өгөөрэй.</p>';
     } else {
       body = '<div class="myorders">' + orders.map(function (o) {
         return (

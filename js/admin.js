@@ -100,8 +100,8 @@
     root().innerHTML =
       '<div class="ad-gate"><div class="ad-gate__card">' +
         '<h1 class="ad-gate__logo">Хандах эрхгүй</h1>' +
-        '<p class="ad-gate__sub">Энэ хуудас зөвхөн админд зориулагдсан.</p>' +
-        '<button class="btn btn--outline btn--block" data-ad="logout">Өөр эрхээр нэвтрэх</button>' +
+        '<p class="ad-gate__sub">Энэ хуудсыг зөвхөн дэлгүүрийн админ ашиглана.</p>' +
+        '<button class="btn btn--outline btn--block" data-ad="logout">Өөр бүртгэлээр нэвтрэх</button>' +
         '<a class="ad-gate__back" href="/">← Дэлгүүр рүү буцах</a>' +
       "</div></div>";
   }
@@ -157,7 +157,7 @@
         '<div class="ad-brand"><img class="ad-brand__mark" src="assets/logo-mark.svg" alt="" width="18" height="34" />' +
           '<span class="ad-brand__name">' + esc(PM.CONFIG.brand.name) + ' <em>Админ</em></span></div>' +
         '<div class="ad-topbar__right">' +
-          '<a class="btn btn--text btn--sm" href="/" target="_blank" rel="noopener" title="Дэлгүүр" aria-label="Дэлгүүр (шинэ цонхонд)">' +
+          '<a class="btn btn--text btn--sm" href="/" target="_blank" rel="noopener" title="Дэлгүүрийг нээх" aria-label="Дэлгүүрийг шинэ цонхонд нээх">' +
             '<span class="ad-shop-txt">Дэлгүүр </span>↗</a>' +
           '<span class="ad-user">' + esc(state.user.name) + "</span>" +
           '<button class="btn btn--outline btn--sm" data-ad="logout">Гарах</button>' +
@@ -206,7 +206,7 @@
     var s = state.stats || {};
     var cards = [
       { label: "Нийт захиалга", value: s.totalOrders || 0, hint: "Өнөөдөр: " + (s.todayOrders || 0) },
-      { label: "Орлого", value: fmt(s.revenue || 0), hint: "Цуцлаагүй захиалгууд" },
+      { label: "Орлого", value: fmt(s.revenue || 0), hint: "Төлөгдсөн, цуцлагдаагүй захиалга" },
       { label: "Идэвхтэй бараа", value: (s.activeProducts || 0) + " / " + (s.totalProducts || 0), hint: "Идэвхтэй / нийт" },
       { label: "Хэрэглэгч", value: s.totalCustomers || 0, hint: state.brands.length + " брэнд" },
     ].map(function (c) {
@@ -224,32 +224,32 @@
     var recent = state.orders.slice(0, 6);
     var recentRows = recent.length
       ? recent.map(orderRowHTML).join("")
-      : '<tr><td colspan="6" class="ad-empty">Захиалга алга байна.</td></tr>';
+      : '<tr><td colspan="6" class="ad-empty">Одоогоор захиалга ирээгүй байна.</td></tr>';
 
     var quickNav =
       '<div class="ad-quicknav">' +
-        '<button class="ad-qbtn ad-qbtn--solid" data-ad="product-new"><span class="ad-qbtn__ico">＋</span><b>Шинэ бараа нэмэх</b><em>Бүтээгдэхүүн оруулах</em></button>' +
-        '<button class="ad-qbtn" data-view="products"><span class="ad-qbtn__ico">🧴</span><b>Бүтээгдэхүүн</b><em>Засах / устгах</em></button>' +
-        '<button class="ad-qbtn" data-view="orders"><span class="ad-qbtn__ico">🧾</span><b>Захиалга</b><em>Хянах</em></button>' +
-        '<button class="ad-qbtn" data-view="brands"><span class="ad-qbtn__ico">✦</span><b>Брэнд</b><em>Удирдах</em></button>' +
+        '<button class="ad-qbtn ad-qbtn--solid" data-ad="product-new"><span class="ad-qbtn__ico">＋</span><b>Шинэ бараа нэмэх</b><em>Дэлгүүрт шинээр оруулах</em></button>' +
+        '<button class="ad-qbtn" data-view="products"><span class="ad-qbtn__ico">🧴</span><b>Бүтээгдэхүүн</b><em>Засах, устгах</em></button>' +
+        '<button class="ad-qbtn" data-view="orders"><span class="ad-qbtn__ico">🧾</span><b>Захиалга</b><em>Шалгах, төлөв солих</em></button>' +
+        '<button class="ad-qbtn" data-view="brands"><span class="ad-qbtn__ico">✦</span><b>Брэнд</b><em>Нэмэх, устгах</em></button>' +
       "</div>";
     main().innerHTML =
       pageHead("Хянах самбар", "Дэлгүүрийн ерөнхий байдал",
         '<button class="btn btn--solid" data-ad="product-new">＋ Шинэ бараа нэмэх</button>') +
       quickNav +
       '<div class="ad-stats">' + cards + "</div>" +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Нөөцлөл (Backup)</h2>' +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Нөөц хуулбар (backup)</h2>' +
         '<p class="ad-hint">' +
-          'Бүх өгөгдлийг (захиалга, хэрэглэгч, бараа) нэг .json файлаар татаж, ' +
-          'компьютер эсвэл Google Drive-даа хадгалаарай. Долоо хоног бүр татахыг зөвлөнө.</p>' +
-        '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Backup татах (.json)</a></div>' +
+          'Захиалга, хэрэглэгч, барааны бүх мэдээллийг нэг .json файлаар татаж аваад ' +
+          'компьютер эсвэл Google Drive-даа хадгалаарай. Долоо хоногт нэг удаа татаж байвал сэтгэл амар.</p>' +
+        '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Нөөц хуулбар татах (.json)</a></div>' +
       '<div class="ad-panel"><h2 class="ad-panel__title">Аюулгүй байдал</h2>' +
-        '<p class="ad-hint">Админ нууц үгээ хэн ч мэдэхгүй, хүчтэй нууц үгээр тогтмол шинэчилж байхыг зөвлөнө.</p>' +
-        '<button class="btn btn--outline btn--sm" data-ad="change-password">🔑 Нууц үг солих</button></div>' +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Төлвөөр</h2><div class="ad-sbadges">' + statusRow + "</div></div>" +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Сүүлийн захиалга</h2>' +
+        '<p class="ad-hint">Админы нууц үгээ хэнд ч бүү хэлээрэй. Хүчтэй нууц үг сонгож, үе үе сольж байхыг зөвлөе.</p>' +
+        '<button class="btn btn--outline btn--sm" data-ad="change-password">Нууц үг солих</button></div>' +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Захиалга төлвөөр</h2><div class="ad-sbadges">' + statusRow + "</div></div>" +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Сүүлийн захиалгууд</h2>' +
         '<div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-          "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Бараа</th><th>Дүн</th><th>Төлөв</th>" +
+          "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th>" +
         "</tr></thead><tbody>" + recentRows + "</tbody></table></div></div>";
   }
 
@@ -262,7 +262,7 @@
     if (Number(p.discount) > 0) tags += '<span class="tag tag--sale">−' + Math.round(p.discount) + "%</span>";
     if (p.stock !== "" && p.stock !== null && p.stock !== undefined) {
       var n = Math.max(0, Math.round(Number(p.stock) || 0));
-      tags += n <= 0 ? '<span class="tag tag--off">Дууссан</span>' : '<span class="tag">Нөөц: ' + n + "</span>";
+      tags += n <= 0 ? '<span class="tag tag--off">Нөөц дууссан</span>' : '<span class="tag">Нөөц: ' + n + "</span>";
     }
     tags += (p.active === false)
       ? '<span class="tag tag--off">Идэвхгүй</span>'
@@ -291,10 +291,10 @@
   function renderProducts() {
     main().innerHTML =
       pageHead("Бүтээгдэхүүн", state.products.length + " бараа",
-        searchBox("products", "Нэр, брэнд хайх…") +
+        searchBox("products", "Нэр эсвэл брэндээр хайх…") +
         '<button class="btn btn--solid btn--sm" data-ad="product-new">＋ Шинэ бараа</button>') +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-        "<th>Нэр</th><th>Үнэ 5/10/20/50/100мл (₮)</th><th>Төлөв</th><th></th>" +
+        "<th>Нэр</th><th>Үнэ 5/10/20/50/100 мл (₮)</th><th>Төлөв</th><th></th>" +
       '</tr></thead><tbody id="ad-prod-body"></tbody></table></div></div>';
     fillProducts();
     onSearch("products", fillProducts);
@@ -317,12 +317,12 @@
 
     var html =
       '<div class="ad-form-wrap">' +
-        '<h3 class="modal__title">' + (isEdit ? "Бараа засах" : "Шинэ бараа") + "</h3>" +
+        '<h3 class="modal__title">' + (isEdit ? "Бараа засах" : "Шинэ бараа нэмэх") + "</h3>" +
         '<p class="auth__err" hidden></p>' +
         '<form id="ad-product-form">' +
           '<div class="ad-grid2">' +
             '<div class="field"><label>Нэр *</label><input name="name" required value="' + esc(p.name) + '" /></div>' +
-            '<div class="field"><label>Брэнд *</label><input name="brand" list="ad-brands" required value="' + esc(p.brand) + '" placeholder="Сонгох эсвэл шинээр бичих" />' +
+            '<div class="field"><label>Брэнд *</label><input name="brand" list="ad-brands" required value="' + esc(p.brand) + '" placeholder="Жагсаалтаас сонгох эсвэл шинээр бичих" />' +
               '<datalist id="ad-brands">' + brandOptions + "</datalist></div>" +
           "</div>" +
           '<div class="ad-grid2">' +
@@ -340,19 +340,19 @@
             '<div class="field"><label>Хямдрал (%)</label><input type="number" name="discount" min="0" max="90" value="' + (p.discount || "") + '" placeholder="0" /></div>' +
           "</div>" +
           '<div class="ad-grid2">' +
-            '<div class="field"><label>Зургийн холбоос (URL)</label><input name="image" value="' + esc(p.image || "") + '" placeholder="https://... (хоосон = флакон)" /></div>' +
-            '<div class="field"><label>Нөөц (ширхэг)</label><input type="number" name="stock" min="0" value="' + (p.stock === "" || p.stock == null ? "" : p.stock) + '" placeholder="хоосон = хязгааргүй" /></div>' +
+            '<div class="field"><label>Зургийн холбоос (URL)</label><input name="image" value="' + esc(p.image || "") + '" placeholder="https://… (хоосон бол флакон дүрс)" /></div>' +
+            '<div class="field"><label>Нөөц (ширхэг)</label><input type="number" name="stock" min="0" value="' + (p.stock === "" || p.stock == null ? "" : p.stock) + '" placeholder="Хоосон бол хязгааргүй" /></div>' +
           "</div>" +
           '<div class="ad-grid3">' + priceInputs + "</div>" +
-          '<div class="field"><label>Дээд нот (таслалаар)</label><input name="top" value="' + esc((p.notes.top || []).join(", ")) + '" /></div>' +
-          '<div class="field"><label>Зүрхэн нот (таслалаар)</label><input name="heart" value="' + esc((p.notes.heart || []).join(", ")) + '" /></div>' +
-          '<div class="field"><label>Суурь нот (таслалаар)</label><input name="base" value="' + esc((p.notes.base || []).join(", ")) + '" /></div>' +
+          '<div class="field"><label>Дээд нот (таслалаар салгана)</label><input name="top" value="' + esc((p.notes.top || []).join(", ")) + '" /></div>' +
+          '<div class="field"><label>Зүрхэн нот (таслалаар салгана)</label><input name="heart" value="' + esc((p.notes.heart || []).join(", ")) + '" /></div>' +
+          '<div class="field"><label>Суурь нот (таслалаар салгана)</label><input name="base" value="' + esc((p.notes.base || []).join(", ")) + '" /></div>' +
           '<div class="field"><label>Тайлбар</label><textarea name="description" rows="2">' + esc(p.description || "") + "</textarea></div>" +
           '<div class="ad-grid2 ad-inline">' +
-            '<div class="field"><label>Картны өнгө</label><input type="color" name="accent" value="' + esc(p.accent || "#8a6d3f") + '" /></div>' +
+            '<div class="field"><label>Картын өнгө</label><input type="color" name="accent" value="' + esc(p.accent || "#8a6d3f") + '" /></div>' +
             '<div class="ad-checks">' +
               '<label class="ad-check"><input type="checkbox" name="popular"' + (p.popular ? " checked" : "") + " /> Эрэлттэй</label>" +
-              '<label class="ad-check"><input type="checkbox" name="active"' + (p.active !== false ? " checked" : "") + " /> Идэвхтэй</label>" +
+              '<label class="ad-check"><input type="checkbox" name="active"' + (p.active !== false ? " checked" : "") + " /> Идэвхтэй (дэлгүүрт харагдана)</label>" +
             "</div>" +
           "</div>" +
           '<div class="ad-form-foot">' +
@@ -392,7 +392,7 @@
         else await PM.api.post("/products", payload);
         await reloadProducts();
         adClose();
-        u.toast(isEdit ? "Бараа шинэчлэгдлээ" : "Бараа нэмэгдлээ", "success");
+        u.toast(isEdit ? "Өөрчлөлт хадгалагдлаа" : "Шинэ бараа нэмэгдлээ", "success");
         renderProducts();
       } catch (err) {
         if (errEl) { errEl.textContent = err.message; errEl.hidden = false; }
@@ -404,12 +404,12 @@
   function confirmDeleteProduct(id) {
     var p = getProduct(id);
     if (!p) return;
-    confirmModal("Бараа устгах уу?", "“" + p.brand + " " + p.name + "”-г бүрмөсөн устгана.", async function () {
+    confirmModal("Бараа устгах уу?", "“" + p.brand + " " + p.name + "” барааг бүрмөсөн устгана. Дараа нь сэргээх боломжгүй.", async function () {
       try {
         await PM.api.del("/products/" + id);
         await reloadProducts();
         adClose();
-        u.toast("Устгагдлаа", "info");
+        u.toast("Бараа устгагдлаа", "info");
         renderProducts();
       } catch (err) { u.toast(err.message, "error"); }
     });
@@ -434,8 +434,8 @@
         "</form>" +
       "</div>" +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-        "<th>Нэр</th><th>Ашиглалт</th><th></th></tr></thead><tbody>" +
-        (rows || '<tr><td colspan="3" class="ad-empty">Брэнд алга.</td></tr>') +
+        "<th>Нэр</th><th>Барааны тоо</th><th></th></tr></thead><tbody>" +
+        (rows || '<tr><td colspan="3" class="ad-empty">Одоогоор брэнд нэмээгүй байна.</td></tr>') +
       "</tbody></table></div></div>";
 
     u.qs("#ad-brand-form").addEventListener("submit", async function (e) {
@@ -454,12 +454,12 @@
   function confirmDeleteBrand(id) {
     var b = state.brands.filter(function (x) { return x.id === id; })[0];
     if (!b) return;
-    confirmModal("Брэнд устгах уу?", "“" + b.name + "”-г устгана.", async function () {
+    confirmModal("Брэнд устгах уу?", "“" + b.name + "” брэндийг жагсаалтаас устгана.", async function () {
       try {
         await PM.api.del("/brands/" + id);
         await reloadBrands();
         adClose();
-        u.toast("Устгагдлаа", "info");
+        u.toast("Брэнд устгагдлаа", "info");
         renderBrands();
       } catch (err) { adClose(); u.toast(err.message, "error"); }
     });
@@ -496,7 +496,7 @@
     var html = '<span class="tag ' + s.cls + '">' + esc(label) + "</span>";
     // ТЕСТ төлбөр — бодит мөнгө ороогүй; хүргэж болохгүй
     if (p.livemode === false) html += '<span class="tag tag--test">ТЕСТ</span>';
-    if (p.refundNeeded) html += '<span class="tag tag--off">Буцаан олгох</span>';
+    if (p.refundNeeded) html += '<span class="tag tag--off">Буцаан олголт хэрэгтэй</span>';
     return html;
   }
 
@@ -532,7 +532,7 @@
     }).join("");
 
     main().innerHTML =
-      pageHead("Захиалга", state.orders.length + " захиалга", searchBox("orders", "Код, нэр, утас хайх…")) +
+      pageHead("Захиалга", state.orders.length + " захиалга", searchBox("orders", "Код, нэр, утсаар хайх…")) +
       '<div class="ad-panel ad-panel--pad"><div class="chips">' + chips + "</div></div>" +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
         "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th><th></th>" +
@@ -554,7 +554,7 @@
       await PM.api.patch("/orders/" + id, { status: status });
       await Promise.all([reloadOrders(), reloadStats()]);
       var o = getOrder(id);
-      u.toast("Төлөв: " + (STATUS[status] ? STATUS[status].label : status), "success");
+      u.toast("Төлөв солигдлоо: " + (STATUS[status] ? STATUS[status].label : status), "success");
       // Select-ийн өнгийг шинэчлэх
       var sel = u.qs('[data-order-status][data-id="' + id + '"]');
       if (sel) sel.className = "ad-status-select " + (STATUS[status] ? STATUS[status].cls : "");
@@ -576,7 +576,7 @@
             (STATUS[o.status] ? STATUS[o.status].label : o.status) + "</span></div>" +
         '<p class="ad-muted">' + esc(dateStr(o.createdAt)) + " · " + esc(o.userEmail || "") + "</p>" +
         '<div class="ad-tablewrap"><table class="ad-table ad-table--sm"><thead><tr>' +
-          "<th>Бараа</th><th>Хэмжээ</th><th>Тоо</th><th>Нэгж</th><th>Дүн</th></tr></thead><tbody>" + items + "</tbody></table></div>" +
+          "<th>Бараа</th><th>Хэмжээ</th><th>Тоо</th><th>Нэгж үнэ</th><th>Дүн</th></tr></thead><tbody>" + items + "</tbody></table></div>" +
         '<div class="ad-sum">' +
           "<div><span>Барааны дүн</span><b>" + fmt(o.subtotal) + "</b></div>" +
           "<div><span>Хүргэлт</span><b>" + (o.deliveryFee === 0 ? "Үнэгүй" : fmt(o.deliveryFee)) + "</b></div>" +
@@ -585,12 +585,12 @@
           (o.payment && o.payment.paidAt
             ? "<div><span>Төлсөн огноо</span><b>" + esc(dateStr(o.payment.paidAt)) + "</b></div>" : "") +
           (o.payment && o.payment.intentId
-            ? '<div><span>Wire гүйлгээ</span><b class="ad-mono">' + esc(o.payment.intentId) + "</b></div>" : "") +
+            ? '<div><span>Wire гүйлгээний дугаар</span><b class="ad-mono">' + esc(o.payment.intentId) + "</b></div>" : "") +
         "</div>" +
         (o.payment && o.payment.method === "qpay" && o.payment.status === "pending" && o.status !== "cancelled"
-          ? '<div class="ad-payact"><p class="ad-muted">Захиалагч QPay-ээр төлөөгүй ч данс/бэлнээр төлсөн бол:</p>' +
+          ? '<div class="ad-payact"><p class="ad-muted">Захиалагч QPay-ээр биш, данс руу эсвэл бэлнээр төлсөн бол:</p>' +
               '<button type="button" class="btn btn--outline btn--sm" data-ad="order-mark-paid" data-id="' + esc(o.id) + '">' +
-              "Төлбөрийг гараар хүлээн авсан</button></div>"
+              "Төлбөр хүлээн авснаа тэмдэглэх</button></div>"
           : "") +
         '<form id="ad-order-form">' +
           '<h4 class="ad-subhead">Захиалагчийн мэдээлэл</h4>' +
@@ -621,7 +621,7 @@
         });
         await Promise.all([reloadOrders(), reloadStats()]);
         adClose();
-        u.toast("Захиалга шинэчлэгдлээ", "success");
+        u.toast("Захиалга хадгалагдлаа", "success");
         renderOrders();
       } catch (err) { u.toast(err.message, "error"); }
     });
@@ -645,7 +645,7 @@
   function customerRow(c) {
     var badge = c.emailVerified
       ? '<span class="tag tag--on">Баталгаажсан</span>'
-      : '<span class="tag tag--off">Батлаагүй</span>';
+      : '<span class="tag tag--off">Баталгаажаагүй</span>';
     return '<tr class="ad-clickable" data-ad="customer-view" data-id="' + c.id + '">' +
       "<td><b>" + esc(c.name) + "</b> " + badge + "</td>" +
       "<td>" + esc(c.email) + '<br><span class="ad-muted">' + esc(c.phone || "—") + "</span></td>" +
@@ -665,7 +665,7 @@
   }
   function renderCustomers() {
     main().innerHTML =
-      pageHead("Хэрэглэгч", state.users.length + " бүртгэлтэй үйлчлүүлэгч", searchBox("customers", "Нэр, и-мэйл, утас хайх…")) +
+      pageHead("Хэрэглэгч", state.users.length + " бүртгэлтэй үйлчлүүлэгч", searchBox("customers", "Нэр, и-мэйл, утсаар хайх…")) +
       '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
         "<th>Нэр</th><th>Холбоо барих</th><th>Захиалга</th><th>Нийт зарцуулсан</th><th>Бүртгүүлсэн</th>" +
       '</tr></thead><tbody id="ad-cust-body"></tbody></table></div></div>';
@@ -683,12 +683,12 @@
         "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
         "<td><b>" + fmt(o.total) + "</b></td>" +
         '<td><span class="status ' + st.cls + '">' + esc(st.label) + "</span></td></tr>";
-    }).join("") : '<tr><td colspan="5" class="ad-empty">Захиалга алга.</td></tr>';
+    }).join("") : '<tr><td colspan="5" class="ad-empty">Одоогоор захиалга хийгээгүй байна.</td></tr>';
     adOpen(
       '<div class="ad-form-wrap">' +
         '<h3 class="modal__title">' + esc(c.name) + "</h3>" +
-        '<p class="ad-muted">' + esc(c.email) + " · " + esc(c.phone || "утасгүй") +
-          " · Бүртгүүлсэн " + esc(dateStr(c.createdAt)) + "</p>" +
+        '<p class="ad-muted">' + esc(c.email) + " · " + esc(c.phone || "Утас оруулаагүй") +
+          " · Бүртгүүлсэн: " + esc(dateStr(c.createdAt)) + "</p>" +
         '<div class="ad-sum">' +
           "<div><span>Захиалгын тоо</span><b>" + c.orderCount + "</b></div>" +
           "<div><span>Нийт зарцуулсан</span><b>" + fmt(c.totalSpent) + "</b></div>" +
@@ -717,16 +717,16 @@
     var box = u.qs("#ad-reviews-list");
     if (box) box.innerHTML = state.reviews.length
       ? state.reviews.map(reviewRow).join("")
-      : '<p class="ad-empty">Сэтгэгдэл алга. Дээрээс шинэ сэтгэгдэл нэмнэ үү.</p>';
+      : '<p class="ad-empty">Одоогоор сэтгэгдэл алга. Дээрх талбараас шинээр нэмээрэй.</p>';
   }
   function renderReviewsView() {
     main().innerHTML =
-      pageHead("Сэтгэгдэл", state.reviews.length + " сэтгэгдэл нүүрэнд харагдаж байна") +
+      pageHead("Сэтгэгдэл", state.reviews.length + " сэтгэгдэл нүүр хуудас дээр харагдаж байна") +
       '<div class="ad-panel ad-panel--pad">' +
         '<form id="ad-review-form" class="ad-review-form">' +
-          '<textarea name="text" rows="2" placeholder="Сэтгэгдлийн текст…" required></textarea>' +
+          '<textarea name="text" rows="2" placeholder="Үйлчлүүлэгчийн сэтгэгдэл…" required></textarea>' +
           '<div class="ad-review-form__foot">' +
-            '<input name="author" placeholder="Нэр (ж: Болд, Улаанбаатар)" />' +
+            '<input name="author" placeholder="Нэр (жишээ нь: Болд, Улаанбаатар)" />' +
             '<button type="submit" class="btn btn--solid btn--sm">＋ Нэмэх</button>' +
           "</div>" +
         "</form>" +
@@ -751,26 +751,26 @@
     var o = getOrder(id);
     if (!o) return;
     confirmModal("Төлбөр хүлээн авсан уу?",
-      "Захиалга " + o.code + " · " + fmt(o.total) + " — мөнгө танд данс эсвэл бэлнээр орж ирснийг баталгаажуулна уу. " +
-      "QPay-ийн нээлттэй нэхэмжлэх хаагдаж, захиалагчид баталгаажуулах и-мэйл очно.",
+      "Захиалга " + o.code + " · " + fmt(o.total) + ". Мөнгө таны дансанд орсон эсвэл бэлнээр төлөгдсөн эсэхийг шалгаад баталгаажуулна уу. " +
+      "Ингэснээр QPay-ийн нээлттэй нэхэмжлэх хаагдаж, захиалагчид баталгаажуулах и-мэйл очно.",
       async function () {
         try {
           await PM.api.patch("/orders/" + id, { paymentReceived: true });
           await Promise.all([reloadOrders(), reloadStats()]);
           adClose();
-          u.toast("Төлбөр хүлээн авсан гэж тэмдэглэлээ", "success");
+          u.toast("Төлбөрийг хүлээн авсан гэж тэмдэглэлээ", "success");
           renderOrders();
         } catch (err) { adClose(); u.toast(err.message, "error"); }
       }, "Тийм, хүлээн авсан");
   }
 
   function confirmDeleteReview(id) {
-    confirmModal("Сэтгэгдэл устгах уу?", "Энэ сэтгэгдлийг нүүр хуудаснаас бүрмөсөн устгана.", async function () {
+    confirmModal("Сэтгэгдэл устгах уу?", "Энэ сэтгэгдлийг бүрмөсөн устгана. Нүүр хуудас дээр дахин харагдахгүй.", async function () {
       try {
         await PM.api.del("/reviews/" + id);
         await reloadReviews();
         adClose();
-        u.toast("Устгагдлаа", "info");
+        u.toast("Сэтгэгдэл устгагдлаа", "info");
         renderReviewsView();
       } catch (err) { adClose(); u.toast(err.message, "error"); }
     });
@@ -787,7 +787,7 @@
         '<form id="ad-pw-form">' +
           '<div class="field"><label>Одоогийн нууц үг</label><input type="password" name="current" autocomplete="current-password" required /></div>' +
           '<div class="field"><label>Шинэ нууц үг (дор хаяж 6 тэмдэгт)</label><input type="password" name="pw1" autocomplete="new-password" minlength="6" required /></div>' +
-          '<div class="field"><label>Шинэ нууц үг давтах</label><input type="password" name="pw2" autocomplete="new-password" minlength="6" required /></div>' +
+          '<div class="field"><label>Шинэ нууц үгээ дахин оруулах</label><input type="password" name="pw2" autocomplete="new-password" minlength="6" required /></div>' +
           '<div class="ad-form-foot">' +
             '<button type="button" class="btn btn--text" data-ad="close-modal">Болих</button>' +
             '<button type="submit" class="btn btn--solid">Хадгалах</button>' +
@@ -800,14 +800,14 @@
     u.qs("#ad-pw-form").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = e.target;
-      if (f.pw1.value !== f.pw2.value) return showErr("Шинэ нууц үг таарахгүй байна.");
-      if (f.pw1.value.length < 6) return showErr("Нууц үг дор хаяж 6 тэмдэгт байх ёстой.");
+      if (f.pw1.value !== f.pw2.value) return showErr("Давтан оруулсан нууц үг таарахгүй байна.");
+      if (f.pw1.value.length < 6) return showErr("Нууц үг дор хаяж 6 тэмдэгттэй байх ёстой.");
       var btn = f.querySelector('button[type="submit"]');
       btn.disabled = true;
       try {
         await PM.api.patch("/auth/me", { currentPassword: f.current.value, newPassword: f.pw1.value });
         adClose();
-        u.toast("Нууц үг амжилттай шинэчлэгдлээ", "success");
+        u.toast("Нууц үг солигдлоо", "success");
       } catch (err) {
         showErr(err.message);
         btn.disabled = false;
@@ -825,7 +825,7 @@
         '<div class="ad-form-foot">' +
           '<button type="button" class="btn btn--text" data-ad="close-modal">Болих</button>' +
           '<button type="button" class="btn btn--solid' + (yesLabel ? "" : " ad-danger-btn") + '" id="ad-confirm-yes">' +
-            esc(yesLabel || "Тийм, устга") + "</button>" +
+            esc(yesLabel || "Тийм, устгах") + "</button>" +
         "</div>" +
       "</div>"
     );

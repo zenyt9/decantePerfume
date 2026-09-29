@@ -24,7 +24,7 @@ PM.api = (function () {
     var data = null;
     try { data = await res.json(); } catch (e) { /* биегүй хариу */ }
     if (!res.ok) {
-      var err = new Error((data && data.error) || ("Алдаа гарлаа (" + res.status + ")"));
+      var err = new Error((data && data.error) || ("Уучлаарай, алдаа гарлаа (" + res.status + "). Дахин оролдоно уу."));
       err.status = res.status;
       throw err;
     }
