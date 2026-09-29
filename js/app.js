@@ -556,23 +556,34 @@
     onScroll();
   }
 
+  /* Холбоо барих утгыг элементэд тавина; утга хоосон бол мөрийг (li) эсвэл холбоосыг нууна */
+  function fillContact(sel, value, apply) {
+    u.qsa(sel).forEach(function (el) {
+      var box = el.closest("li") || el;
+      box.hidden = !value;
+      if (value) apply(el, value);
+    });
+  }
+
   function fillConfigText() {
     var c = PM.CONFIG;
+    var k = c.contact;
     u.qsa("[data-brand]").forEach(function (el) { el.textContent = c.brand.name; });
     u.qsa("[data-tagline]").forEach(function (el) { el.textContent = c.brand.tagline; });
-    u.qsa("[data-phone]").forEach(function (el) {
-      el.textContent = c.contact.phone;
-      if (el.tagName === "A") el.setAttribute("href", c.contact.phoneHref);
+    fillContact("[data-phone]", k.phone, function (el, v) {
+      el.textContent = v;
+      if (el.tagName === "A") el.setAttribute("href", k.phoneHref);
     });
-    u.qsa("[data-email]").forEach(function (el) {
-      el.textContent = c.contact.email;
-      if (el.tagName === "A") el.setAttribute("href", "mailto:" + c.contact.email);
+    fillContact("[data-email]", k.email, function (el, v) {
+      el.textContent = v;
+      if (el.tagName === "A") el.setAttribute("href", "mailto:" + v);
     });
-    u.qsa("[data-address]").forEach(function (el) { el.textContent = c.contact.address; });
-    u.qsa("[data-hours]").forEach(function (el) { el.textContent = c.contact.hours; });
-    u.qsa("[data-messenger]").forEach(function (el) { el.setAttribute("href", c.contact.messenger); });
-    u.qsa("[data-instagram]").forEach(function (el) { el.setAttribute("href", c.contact.instagram); });
-    u.qsa("[data-facebook]").forEach(function (el) { el.setAttribute("href", c.contact.facebook); });
+    fillContact("[data-address]", k.address, function (el, v) { el.textContent = v; });
+    fillContact("[data-hours]", k.hours, function (el, v) { el.textContent = v; });
+    fillContact("[data-delivery-time]", k.deliveryTime, function (el, v) { el.textContent = v; });
+    fillContact("[data-messenger]", k.messenger, function (el, v) { el.setAttribute("href", v); });
+    fillContact("[data-instagram]", k.instagram, function (el, v) { el.setAttribute("href", v); });
+    fillContact("[data-facebook]", k.facebook, function (el, v) { el.setAttribute("href", v); });
     u.qsa("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
     u.qsa("[data-free-over]").forEach(function (el) { el.textContent = u.formatPrice(c.delivery.freeOver); });
   }
