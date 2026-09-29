@@ -3,6 +3,10 @@ Allow: /$
 Allow: /css/
 Allow: /js/
 Allow: /assets/
+Allow: /api/products
+Allow: /api/brands
+Allow: /api/reviews
+Allow: /api/settings
 Disallow: /admin
 Disallow: /admin.html
 Disallow: /api/

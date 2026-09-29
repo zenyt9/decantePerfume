@@ -3,7 +3,7 @@
  * =====================================================================
  * Модулиудыг нэгтгэж, DOM үйл явдлыг сонсоно. Хамгийн сүүлд ачаалагдана.
  *   • Бараа, session-ийг backend-ээс ачаална
- *   • Сагслахын өмнө нэвтрэлт шаардана
+ *   • Зочин ч сагслах боломжтой; захиалга өгөхөд нэвтрэлт шаардана
  *   • Захиалгыг серверт үүсгэнэ
  */
 (function () {
@@ -11,11 +11,19 @@
   var u = PM.utils;
 
   var filterState = { category: "all", query: "", sort: "featured" };
+  var catalogReady = false; // бараа ачаалагдсан эсэх
+  var catalogList = [];     // одоогийн шүүлтийн бүх үр дүн
+  var catalogShown = 0;     // үүнээс хэдийг нь зурсан
+
+  /* Эхэндээ харуулах барааны тоо (гар утсанд цөөн) */
+  function pageSize() { return window.innerWidth <= 720 ? 8 : 12; }
 
   /* ================================================================== */
   /*  Каталогийн шүүлт ба эрэмбэлэлт                                     */
   /* ================================================================== */
   function applyFilters() {
+    // Бараа ачаалагдаагүй байхад шүүлт дарвал зөвхөн төлвийг хадгална (ачаалсны дараа хэрэгжинэ)
+    if (!catalogReady) return;
     var list = PM.products.items.slice();
 
     if (filterState.category === "popular") {
@@ -42,9 +50,64 @@
       default:           list.sort(function (a, b) { return (b.popular ? 1 : 0) - (a.popular ? 1 : 0); });
     }
 
-    PM.ui.renderProducts(list);
+    // Шүүлт/хайлт/эрэмбэ өөрчлөгдөх бүрд эхний хуудас руу буцна
+    catalogList = list;
+    catalogShown = PM.ui.renderProducts(list, pageSize());
     var counter = u.qs("#result-count");
     if (counter) counter.textContent = list.length + " бүтээгдэхүүн";
+  }
+
+  /* "Цааш үзэх" — үлдсэн бүх барааг харуулна */
+  function showMoreProducts() {
+    if (catalogShown >= catalogList.length) return;
+    PM.ui.appendProducts(catalogList, catalogShown);
+    catalogShown = catalogList.length;
+  }
+
+  /* Хямдралтай бараа байхгүй бол "Хямдрал" шүүлтүүрийг нууна
+     (index.html-д анхнаасаа нуугдсан — ачаалсны дараа хямдрал байвал л харагдана) */
+  function syncSaleChip() {
+    var chip = u.qs('.filter-chip[data-category="sale"]');
+    if (!chip) return;
+    var anySale = PM.products.items.some(function (p) { return PM.products.hasDiscount(p); });
+    chip.hidden = !anySale;
+    if (!anySale && filterState.category === "sale") {
+      var all = u.qs('.filter-chip[data-category="all"]');
+      if (all) all.click();
+    }
+  }
+
+  /* ================================================================== */
+  /*  Каталог ачаалах (алдаа гарвал "Дахин ачаалах" товч)                 */
+  /* ================================================================== */
+  var LOADING_HTML = '<p class="catalog-loading">Ачаалж байна…</p>';
+
+  async function loadCatalog() {
+    var grid = u.qs("#product-grid");
+    try {
+      await PM.products.load();
+      catalogReady = true;
+      syncSaleChip();
+      applyFilters();
+      // Сагсыг бараа ачаалагдсаны дараа дахин зурна (өмнө нь бараа танигдаагүй тул хоосон харагдана)
+      PM.ui.renderCart(PM.cart.state());
+      return true;
+    } catch (err) {
+      // Техникийн алдааг хэрэглэгчид биш, зөвхөн console-д харуулна
+      console.error("Бараа ачаалахад алдаа гарлаа:", err);
+      if (grid) grid.innerHTML =
+        '<div class="load-error">' +
+          "<p>Уучлаарай, бараа ачаалахад алдаа гарлаа. Хуудсаа дахин ачаалж үзнэ үү.</p>" +
+          '<button type="button" class="btn btn--outline" data-action="retry-products">Дахин ачаалах</button>' +
+        "</div>";
+      return false;
+    }
+  }
+
+  function retryCatalog() {
+    var grid = u.qs("#product-grid");
+    if (grid) grid.innerHTML = LOADING_HTML;
+    loadCatalog();
   }
 
   /* ================================================================== */
@@ -72,16 +135,25 @@
     var d = u.qs("#cart-drawer");
     if (d) d.setAttribute("aria-hidden", "false");
     PM.modal.syncOverlay();
+    // Focus-ийг drawer-ийн "Хаах" товч руу шилжүүлнэ
+    var x = u.qs("#cart-drawer .cart-drawer__head [data-action='close-cart']");
+    if (x) x.focus({ preventScroll: true });
   }
   function closeCart() {
+    var wasOpen = document.body.classList.contains("cart-open");
     document.body.classList.remove("cart-open");
     var d = u.qs("#cart-drawer");
     if (d) d.setAttribute("aria-hidden", "true");
     PM.modal.syncOverlay();
+    // Хаахад focus-ийг толгой дахь сагсны товч руу буцаана (нээлттэй байсан үед л)
+    if (wasOpen) {
+      var btn = u.qs("#site-header [data-action='open-cart']");
+      if (btn) btn.focus({ preventScroll: true });
+    }
   }
 
   /* ================================================================== */
-  /*  Сагслах (нэвтрэлт шаардана)                                        */
+  /*  Сагслах (зочин ч сагслах боломжтой — нэвтрэлтийг захиалахад шаардана) */
   /* ================================================================== */
   function addFromContainer(container) {
     if (!container) return;
@@ -91,14 +163,6 @@
     if (!product) return;
     if (PM.products.stockInfo(product).soldOut) {
       u.toast("Уучлаарай, энэ үнэр одоогоор дууссан байна.", "error");
-      return;
-    }
-
-    if (!PM.session.isAuthed()) {
-      PM.session.openAuth({
-        message: "Сагсанд нэмэхийн тулд эхлээд нэвтэрнэ үү.",
-        onSuccess: function () { doAdd(product, id, ml); openCart(); },
-      });
       return;
     }
     doAdd(product, id, ml);
@@ -429,7 +493,12 @@
 
       /* --- Сагслах --- */
       case "add":       addFromContainer(actEl.closest(".card")); break;
+      // Нэвтрэлт шаардахгүй болсон тул нэмээд цонхыг шууд хаана
       case "add-modal": addFromContainer(actEl.closest(".qv")); PM.modal.close(); break;
+
+      /* --- Каталог --- */
+      case "more-products":  showMoreProducts(); break;
+      case "retry-products": retryCatalog(); break;
 
       /* --- Сагсны мөр --- */
       case "inc":
@@ -497,13 +566,19 @@
       });
     });
     var search = u.qs("#search");
-    if (search) search.addEventListener("input", u.debounce(function () {
-      filterState.query = search.value; applyFilters();
-    }, 180));
+    if (search) {
+      filterState.query = search.value; // хөтөч талбарын утгыг сэргээсэн байж болно
+      search.addEventListener("input", u.debounce(function () {
+        filterState.query = search.value; applyFilters();
+      }, 180));
+    }
     var sort = u.qs("#sort");
-    if (sort) sort.addEventListener("change", function () {
-      filterState.sort = sort.value; applyFilters();
-    });
+    if (sort) {
+      filterState.sort = sort.value;
+      sort.addEventListener("change", function () {
+        filterState.sort = sort.value; applyFilters();
+      });
+    }
   }
 
   function bindOrderForm() {
@@ -529,8 +604,17 @@
         var item = q.closest(".faq__item");
         var open = item.classList.toggle("is-open");
         q.setAttribute("aria-expanded", String(open));
+        // CSS-ийн тогтмол max-height урт хариултыг тасалдаг тул бодит өндрийг нь өгнө (transition хэвээр)
+        var answer = u.qs(".faq__a", item);
+        if (answer) answer.style.maxHeight = open ? answer.scrollHeight + "px" : "";
       });
     });
+    // Дэлгэцийн өргөн өөрчлөгдөхөд нээлттэй хариултын өндрийг шинэчилнэ
+    window.addEventListener("resize", u.debounce(function () {
+      u.qsa(".faq__item.is-open .faq__a").forEach(function (a) {
+        a.style.maxHeight = a.scrollHeight + "px";
+      });
+    }, 150));
   }
 
   function bindMobileNav() {
@@ -640,26 +724,13 @@
     // Хэрэглэгч өөрчлөгдөх бүрд захиалгын форм урьдчилан бөглөх
     PM.session.subscribe(prefillOrderForm);
 
-    // Backend-ээс өгөгдөл ачаалах
-    try {
-      await Promise.all([PM.products.load(), PM.session.load()]);
-      applyFilters();
-    } catch (err) {
-      var grid = u.qs("#product-grid");
-      if (grid) grid.innerHTML =
-        '<p class="load-error">Уучлаарай, бараа ачаалахад алдаа гарлаа. Хуудсаа дахин ачаалж үзнэ үү.<br />' +
-        u.escapeHtml(err.message) + "</p>";
-    }
-    // QPay-ийн төлбөрийн хуудаснаас буцаж ирсэн бол төлөвийг шалгана
-    handlePaymentReturn();
-
     // Эвдэрсэн бүтээгдэхүүний зургийг нуух (CSP-д тохирсон, capture фазд)
     document.addEventListener("error", function (e) {
       var t = e.target;
       if (t && t.tagName === "IMG" && t.classList.contains("prod-img")) t.style.display = "none";
     }, true);
 
-    // Үйл явдлууд
+    // Үйл явдлууд — API хүлээхээс ӨМНӨ холбоно (ачаалж байх хооронд товчнууд ажиллана)
     document.addEventListener("click", onClick);
     bindFilters();
     bindOrderForm();
@@ -678,6 +749,12 @@
         PM.session.toggleMenu(false);
       }
     });
+
+    // Backend-ээс өгөгдөл ачаалах (барааны алдааг loadCatalog өөрөө харуулна)
+    await Promise.all([loadCatalog(), PM.session.load()]);
+
+    // QPay-ийн төлбөрийн хуудаснаас буцаж ирсэн бол төлөвийг шалгана
+    handlePaymentReturn();
   }
 
   if (document.readyState === "loading") {

@@ -116,7 +116,8 @@ PM.session = (function () {
   /* ---------------- Нэвтрэх / Бүртгүүлэх modal ---------------- */
   function openAuth(opts) {
     opts = opts || {};
-    if (opts.onSuccess) pendingOnAuth = opts.onSuccess;
+    // Callback өгөөгүй бол хуучин үйлдлийг цэвэрлэнэ — энгийн нэвтрэлт хуучин үйлдлийг дахин ажиллуулахгүй
+    pendingOnAuth = opts.onSuccess || null;
     renderAuth(opts.mode || "login", opts.message || "");
   }
 

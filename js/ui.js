@@ -137,18 +137,50 @@ PM.ui = (function () {
   /* ------------------------------------------------------------------ */
   /*  Каталог зурах                                                      */
   /* ------------------------------------------------------------------ */
-  function renderProducts(list) {
+  /** "Цааш үзэх" товч — үлдсэн барааны тоог харуулна */
+  function moreButton(remaining) {
+    return '<div class="catalog-more">' +
+      '<button type="button" class="btn btn--outline" data-action="more-products">Цааш үзэх (' + remaining + ")</button>" +
+    "</div>";
+  }
+
+  /**
+   * Каталог зурах. limit өгвөл эхний limit ширхгийг зурж, үлдсэнд
+   * "Цааш үзэх" товч нэмнэ. Зурсан картын тоог буцаана.
+   */
+  function renderProducts(list, limit) {
     var grid = u.qs("#product-grid");
     var empty = u.qs("#product-empty");
-    if (!grid) return;
+    if (!grid) return 0;
 
     if (!list.length) {
       grid.innerHTML = "";
       if (empty) empty.hidden = false;
-      return;
+      return 0;
     }
     if (empty) empty.hidden = true;
-    grid.innerHTML = list.map(productCard).join("");
+    var n = limit > 0 && limit < list.length ? limit : list.length;
+    grid.innerHTML = list.slice(0, n).map(productCard).join("") +
+      (n < list.length ? moreButton(list.length - n) : "");
+    return n;
+  }
+
+  /** "Цааш үзэх" — from-оос хойших бараануудыг товчны оронд залгана (сонгосон хэмжээ хэвээр үлдэнэ) */
+  function appendProducts(list, from) {
+    var grid = u.qs("#product-grid");
+    if (!grid) return;
+    var more = u.qs(".catalog-more", grid);
+    var kbFocus = false; // товчийг гараар (Tab + Enter) дарсан эсэх
+    if (more) {
+      try { kbFocus = !!more.querySelector(":focus-visible"); } catch (e) {}
+      more.parentNode.removeChild(more);
+    }
+    grid.insertAdjacentHTML("beforeend", list.slice(from).map(productCard).join(""));
+    // Товч алга болсон тул гарын хэрэглэгчийн focus-ийг шинэ эхний карт руу шилжүүлнэ
+    if (!kbFocus) return;
+    var first = grid.children[from];
+    var target = first && first.querySelector(".size-chip, .card__add");
+    if (target) target.focus({ preventScroll: true });
   }
 
   /* ------------------------------------------------------------------ */
@@ -412,6 +444,7 @@ PM.ui = (function () {
     productMedia: productMedia,
     priceMarkup: priceMarkup,
     renderProducts: renderProducts,
+    appendProducts: appendProducts,
     renderCart: renderCart,
     renderQuickView: renderQuickView,
     buildOrderText: buildOrderText,
@@ -447,22 +480,73 @@ PM.modal = (function () {
     return m && m.getAttribute("aria-hidden") === "false";
   }
 
+  var lastFocus = null; // modal нээхээс өмнө focus байсан элемент (хаахад буцаана)
+  var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), ' +
+    'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  /** root доторх харагдаж буй эхний focus авах элемент */
+  function firstFocusable(root) {
+    if (!root) return null;
+    var list = root.querySelectorAll(FOCUSABLE);
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].offsetParent !== null) return list[i];
+    }
+    return null;
+  }
+
   /** HTML агуулгыг modal-д дүрсэлж нээх. wide=true бол өргөн хувилбар. */
   function open(html, opts) {
     opts = opts || {};
     var host = u.qs("#modal-content");
     var panel = u.qs("#modal .modal__panel");
+    var wasOpen = isOpen();
+    // Агуулга солигдож байгаа бол (жишээ нь нэвтрэх → баталгаажуулах) анхны focus-ийг хэвээр үлдээнэ
+    if (!wasOpen) lastFocus = document.activeElement;
     if (host) host.innerHTML = html;
     if (panel) panel.classList.toggle("modal__panel--wide", !!opts.wide);
     var m = modalEl();
     if (m) m.setAttribute("aria-hidden", "false");
     syncOverlay();
+    // Focus-ийг цонх руу шилжүүлж, гүйлгэлтийг дээд хэсэгт нь буцаана.
+    // Нээлттэй цонхны агуулга шинэчлэгдэхэд (жишээ нь төлбөр шалгах үед) focus "Хаах" товч дээр
+    // хэвээр байвал булаахгүй.
+    var ae = document.activeElement;
+    if (!(wasOpen && m && ae && ae !== panel && m.contains(ae))) {
+      focusInto(firstFocusable(host) || panel, 0);
+    }
+    if (panel) panel.scrollTop = 0;
+  }
+
+  /*
+   * Modal-ийн visibility transition эхлэх агшинд цонх "hidden" хэвээр байдаг тул
+   * focus тогтохгүй бол богино хугацаанд дахин оролдоно. Хэрэглэгч аль хэдийн
+   * цонхон дотор дарсан бол focus-ийг булаахгүй.
+   */
+  function focusInto(el, tries) {
+    var m = modalEl();
+    if (!el || !el.focus || !isOpen()) return;
+    if (tries > 0 && m && m.contains(document.activeElement)) return;
+    el.focus({ preventScroll: true });
+    if (document.activeElement !== el && tries < 6) {
+      setTimeout(function () { focusInto(el, tries + 1); }, 40);
+    }
   }
 
   function close() {
+    var wasOpen = isOpen();
     var m = modalEl();
     if (m) m.setAttribute("aria-hidden", "true");
     syncOverlay();
+    // Нээхээс өмнөх элемент рүү focus-ийг буцаана (хаалттай байхад дуудвал юу ч хийхгүй).
+    // Тэр элемент алга болсон/нуугдсан бол focus-ийг хаагдсан цонхонд үлдээхгүй.
+    var prev = lastFocus;
+    lastFocus = null;
+    if (!wasOpen) return;
+    if (prev && prev.focus && prev.offsetParent !== null) {
+      prev.focus({ preventScroll: true });
+    } else if (m && m.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
   }
 
   return { open: open, close: close, isOpen: isOpen, syncOverlay: syncOverlay };

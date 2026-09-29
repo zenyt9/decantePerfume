@@ -39,8 +39,12 @@
 
   if (consent === "yes") loadTrackers();
 
+  // Хэмжүүр (GA4 / Pixel) тохируулаагүй бол зөвшөөрөл асуух шаардлагагүй тул banner-ийг харуулахгүй
+  var cfg = (window.PM && PM.CONFIG && PM.CONFIG.analytics) || {};
+  var hasTrackers = !!(cfg.ga4 || cfg.fbPixel);
+
   var banner = document.getElementById("cookie-banner");
-  if (banner && !consent) banner.hidden = false;
+  if (banner && !consent && hasTrackers) banner.hidden = false;
 
   document.addEventListener("click", function (e) {
     var btn = e.target.closest ? e.target.closest("[data-cookie]") : null;

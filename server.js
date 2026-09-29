@@ -11,9 +11,11 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const { ensureSeeded } = require("./lib/seed");
 const { handleApi } = require("./lib/api");
+const { acceptsGzip } = require("./lib/util");
 const payments = require("./lib/payments");
 
 // Барьж амжаагүй promise алдаа серверийг унагахгүй — логлоод үргэлжилнэ
@@ -31,11 +33,12 @@ const BUILD_ID = Date.now().toString(36);
 /* Аюулгүй байдлын толгойнууд (бүх хариуд) */
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' https://www.googletagmanager.com https://connect.facebook.net",
+  "script-src 'self' https://*.googletagmanager.com https://connect.facebook.net",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://connect.facebook.net",
+  // GA4 (бүх бүсийн дэд домэйн) + Meta Pixel-ийн beacon (www.facebook.com/tr)
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://connect.facebook.net https://www.facebook.com",
   "frame-src https://www.facebook.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
@@ -84,6 +87,22 @@ const MIME = {
   ".webmanifest": "application/manifest+json; charset=utf-8",
 };
 
+/* gzip шахалт: зөвхөн текст төрлийн файлд (зураг/фонт аль хэдийн шахагдсан) */
+const GZIP_EXT = new Set([".html", ".css", ".js", ".json", ".svg", ".xml", ".txt", ".webmanifest"]);
+
+/* Шахсан хувилбарын кэш: файлын зам → { src: илгээх эх байт, gz: шахсан байт }.
+   Эх байт таарвал дахин шахахгүй; файл өөрчлөгдвөл (эсвэл HTML-ийн ?v=BUILD_ID
+   шинэчлэгдвэл) шинээр шахаж солино. Файл бүрт нэг л бичлэг тул санах ой өсөхгүй. */
+const gzipCache = new Map();
+function gzipCached(filePath, data) {
+  const hit = gzipCache.get(filePath);
+  if (hit && hit.src.equals(data)) return hit.gz;
+  let gz = zlib.gzipSync(data, { level: 9 });
+  if (gz.length >= data.length) gz = null; // шахаад томорвол эх хувилбараар нь явуулна
+  gzipCache.set(filePath, { src: data, gz: gz });
+  return gz;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Статик файл түгээх                                                 */
 /* ------------------------------------------------------------------ */
@@ -91,7 +110,7 @@ function serveStatic(req, res, pathname) {
   // Замын хувиргалт
   let rel = pathname;
   if (rel === "/") rel = "/index.html";
-  else if (rel === "/admin" || rel === "/admin/") rel = "/admin.html";
+  else if (rel === "/admin") rel = "/admin.html"; // "/admin/"-ийг handler дээр 301 болгоно
 
   // Path traversal хамгаалалт: pathname нь decodeURIComponent хийгдсэн тул
   // "%2e%2e%2f" мэт кодлол ".." болж задарсан байж болно. Ийм замыг эндээс
@@ -140,8 +159,23 @@ function serveStatic(req, res, pathname) {
       headers["Cache-Control"] = "no-cache";
     }
 
+    // Текст файлыг хөтөч дэмжвэл gzip-ээр явуулна. HEAD хүсэлтэд GET-тэй ижил
+    // толгой буцаана — Node HEAD-ийн биеийг өөрөө илгээдэггүй.
+    let body = data;
+    if (GZIP_EXT.has(ext)) {
+      headers["Vary"] = "Accept-Encoding";
+      if (acceptsGzip(req)) {
+        const gz = gzipCached(filePath, data);
+        if (gz) {
+          body = gz;
+          headers["Content-Encoding"] = "gzip";
+        }
+      }
+    }
+    headers["Content-Length"] = body.length;
+
     res.writeHead(200, headers);
-    res.end(data);
+    res.end(body);
   });
 }
 
@@ -158,6 +192,15 @@ function badRequest(res) {
 const server = http.createServer((req, res) => {
   // Аливаа гэнэтийн (synchronous) алдаа процессыг унагахгүй — 500 буцаана
   try {
+    // www.decanteperfume.com → https://decanteperfume.com (зам, query хэвээр).
+    // Host-ийг хатуу загвараар шалгаж, зөвхөн "www."-ийг хасна (порт хаягдана).
+    const wwwHost = /^www\.([a-z0-9-]+(?:\.[a-z0-9-]+)+)\.?(?::\d+)?$/i.exec(String(req.headers.host || ""));
+    if (wwwHost) {
+      const target = "https://" + wwwHost[1].toLowerCase() + (req.url.charAt(0) === "/" ? req.url : "/");
+      res.writeHead(301, { Location: target, "Content-Length": 0 });
+      return res.end();
+    }
+
     setSecurityHeaders(res);
     let parsed, pathname;
     try {
@@ -168,6 +211,13 @@ const server = http.createServer((req, res) => {
       return badRequest(res);
     }
     const query = Object.fromEntries(parsed.searchParams);
+
+    // "/admin/" → "/admin" (301). Эс бөгөөс admin.html-ийн харьцангуй
+    // (css/..., js/...) замууд "/admin/css/..." болж эвдэрнэ.
+    if (pathname === "/admin/") {
+      res.writeHead(301, { Location: "/admin" + parsed.search, "Content-Length": 0 });
+      return res.end();
+    }
 
     if (pathname.startsWith("/api/")) {
       return handleApi(req, res, pathname, query);

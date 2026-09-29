@@ -28,6 +28,9 @@
 /*  1. ДИЗАЙН ТОКЕН                                                    */
 /* ------------------------------------------------------------------ */
 :root {
+  /* Бараан тема: scrollbar, форм, autofill зэрэг браузерын элементүүд ч бараан */
+  color-scheme: dark;
+
   /* Өнгө */
   --bg:            #0d0d0f;   /* бараан суурь */
   --surface:       #16171b;   /* картууд, панель */
@@ -789,10 +792,17 @@ h1, h2, h3, h4 {
   background: var(--bg);
   box-shadow: var(--shadow-lg);
   transform: translateX(100%);
-  transition: transform .32s var(--ease);
+  /* Хаалттай үед visibility:hidden — гулсах хөдөлгөөн дууссаны дараа нуугдаж,
+     Tab товчоор дотор нь орохгүй */
+  visibility: hidden;
+  transition: transform .32s var(--ease), visibility 0s linear .32s;
   display: flex; flex-direction: column;
 }
-body.cart-open .cart-drawer { transform: translateX(0); }
+body.cart-open .cart-drawer {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform .32s var(--ease), visibility 0s linear 0s;
+}
 
 .cart-drawer__head {
   display: flex; align-items: center; justify-content: space-between;
@@ -866,7 +876,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   background: var(--gold-soft); border-radius: var(--radius-sm);
   padding: 9px 12px; text-align: center;
 }
-.cart-hint--ok { background: #e4efe0; color: #3a5a40; }
+.cart-hint--ok { background: rgba(74,197,126,.15); color: #6fd79a; }
 .cart-sum { display: grid; gap: 8px; margin: 4px 0; }
 .cart-sum__row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-soft); }
 .cart-sum__row--total {
@@ -874,7 +884,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   font-size: 19px; font-weight: 700; color: var(--ink);
   font-family: var(--font-display);
 }
-.ship-free { color: #3a5a40; font-weight: 600; }
+.ship-free { color: #6fd79a; font-weight: 600; }
 
 /* ------------------------------------------------------------------ */
 /*  17. MODAL БА ЗАХИАЛГА БАТАЛГААЖУУЛАХ                               */
@@ -981,6 +991,31 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 /* ------------------------------------------------------------------ */
 /*  19. RESPONSIVE                                                     */
 /* ------------------------------------------------------------------ */
+/* Толгойн цэс: жижиг laptop-д нягтруулж, 1024px-ээс доош ☰ цэс болгоно (мөр хуваагдахгүй) */
+@media (max-width: 1180px) {
+  .nav { gap: 20px; }
+  .nav a { font-size: 14.5px; white-space: nowrap; }
+}
+@media (max-width: 1024px) {
+  .nav {
+    position: fixed; inset: var(--header-h) 0 auto 0;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 24px 20px;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-140%);
+    transition: transform .3s var(--ease);
+  }
+  body.nav-open .nav { transform: translateY(0); }
+  .nav a { padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
+  .nav a::after { display: none; }
+  .nav-toggle { display: inline-flex; }
+  body.nav-open .nav-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  body.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
+  body.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+}
+
 @media (max-width: 1080px) {
   .product-grid { grid-template-columns: repeat(3, 1fr); }
   .steps { grid-template-columns: repeat(2, 1fr); }
@@ -1005,23 +1040,6 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   /* Гар утсанд флаконуудыг нуулгаж, зөвхөн градиент дэвсгэр + текст */
   .hero { background: transparent; }
   .hero__inner { min-height: auto; padding: 52px 0 60px; }
-  .nav {
-    position: fixed; inset: var(--header-h) 0 auto 0;
-    flex-direction: column; align-items: stretch; gap: 0;
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    padding: 12px 24px 20px;
-    box-shadow: var(--shadow-md);
-    transform: translateY(-140%);
-    transition: transform .3s var(--ease);
-  }
-  body.nav-open .nav { transform: translateY(0); }
-  .nav a { padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
-  .nav a::after { display: none; }
-  .nav-toggle { display: inline-flex; }
-  body.nav-open .nav-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-  body.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
-  body.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
   .toolbar { flex-direction: column; align-items: stretch; }
   .toolbar__right { flex-direction: column; }
@@ -1112,7 +1130,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   transition: background .15s;
 }
 .menu__item:hover { background: var(--surface-2); }
-.menu__item--danger { color: #a8322c; }
+.menu__item--danger { color: #e07564; }
 
 /* --- Нэвтрэх / Бүртгүүлэх --- */
 .auth { padding: 34px; }
@@ -1174,11 +1192,12 @@ body.cart-open .cart-drawer { transform: translateX(0); }
   display: inline-block; padding: 4px 11px; border-radius: 100px;
   font-size: 12px; font-weight: 600; white-space: nowrap;
 }
-.st-new        { background: #e7eefc; color: #2f4a8f; }
-.st-confirmed  { background: #e4efe0; color: #3a5a40; }
-.st-delivering { background: #fdf0d8; color: #8a6d1f; }
-.st-done       { background: #e8e6ea; color: #4a4a52; }
-.st-cancelled  { background: #fdecea; color: #a8322c; }
+/* Бараан дэвсгэрт тохирсон өнгө (админы .status, .pay-* шошготой ижил) */
+.st-new        { background: rgba(90,130,220,.16); color: #9db8f0; }
+.st-confirmed  { background: rgba(74,197,126,.15); color: #6fd79a; }
+.st-delivering { background: rgba(201,168,76,.16); color: #e3ca7f; }
+.st-done       { background: rgba(255,255,255,.08); color: var(--ink-soft); }
+.st-cancelled  { background: rgba(224,106,95,.15); color: #eb8b82; }
 
 @media (max-width: 480px) {
   .account__name { display: none; }
@@ -1203,7 +1222,7 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 /* --- Толгой: бараан frosted --- */
 .header { background: rgba(10,10,12,.72); }
 .header.is-scrolled { background: rgba(10,10,12,.9); }
-.cart-count { color: #16130a; }
+.cart-btn__count { color: #16130a; }
 .account__avatar { color: #16130a; }
 
 /* --- Hero: алтан гэрэлтэлт --- */
@@ -1335,7 +1354,8 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 
 /* Cookie зөвшөөрлийн banner */
 .cookie-banner {
-  position: fixed; z-index: 260; left: 50%; bottom: 20px; transform: translateX(-50%);
+  /* z-index: overlay (150), сагс (200), modal (250)-ийн доор — нээгдсэн цонх banner-ийг далдална */
+  position: fixed; z-index: 140; left: 50%; bottom: 20px; transform: translateX(-50%);
   width: calc(100% - 32px); max-width: 640px;
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between;
   background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px;
@@ -1347,7 +1367,9 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 .cookie-banner__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .cookie-banner .btn { padding: 9px 18px; font-size: 13.5px; }
 @media (max-width: 480px) {
-  .cookie-banner { flex-direction: column; align-items: stretch; }
+  .cookie-banner { flex-direction: column; align-items: stretch; gap: 12px; bottom: 12px; padding: 14px 16px; }
+  /* Багана чиглэлд flex-basis 260px нь өндөр болж хувирдаг тул текстийг агуулгынхаа хэмжээгээр */
+  .cookie-banner__text { flex: 0 0 auto; }
   .cookie-banner__actions .btn { flex: 1; }
 }
 
@@ -1372,3 +1394,57 @@ body.cart-open .cart-drawer { transform: translateX(0); }
 .pay-pending { background: rgba(227,168,76,.16); color: #e3b25c; }
 .pay-expired { background: rgba(255,255,255,.07); color: var(--muted); }
 .myorder__pay { margin-top: 10px; }
+
+/* ==================================================================== */
+/*  25. МОБАЙЛ БА ХҮРТЭЭМЖИЙН ЗАСВАР                                     */
+/* ==================================================================== */
+
+/* Каталогийн "Цааш үзэх" мөр ба ачаалж буй үеийн бичвэр (#product-grid дотор) */
+.catalog-more {
+  grid-column: 1 / -1;
+  display: flex; justify-content: center;
+  margin-top: 8px;
+}
+.catalog-loading {
+  grid-column: 1 / -1;
+  text-align: center; color: var(--muted);
+  padding: 40px 0;
+}
+
+/* "Дэлгэрэнгүй" товч: гарын (Tab) хэрэглэгч болон мэдрэгчтэй дэлгэцэд ч харагдана */
+/* :has(:focus-visible) — зөвхөн гараар (Tab) очиход; хулганаар дарсны дараа харагдсаар үлдэхгүй */
+.card:has(:focus-visible) .card__quickview,
+.card__quickview:focus-visible { opacity: 1; transform: none; }
+@media (hover: none) {
+  .card__quickview { opacity: 1; transform: none; }
+}
+@media (hover: none) and (max-width: 460px) {
+  .card__quickview { left: 8px; right: 8px; bottom: 8px; padding: 7px; font-size: 12px; }
+}
+
+/* Картын доод мөр: үнэ + "Сагслах" нэг мөрөнд багтахгүй бол товч дараагийн мөрөнд
+   (баруун талдаа) шилжинэ — картын ирмэгээс халиж тасрахгүй */
+.card__foot { flex-wrap: wrap; row-gap: 8px; }
+.card__add { margin-left: auto; }
+/* Утсанд (2 багана) товчийг доод мөрөнд бүтэн өргөнөөр — 412/414px утсанд ч багтахгүй байсан */
+@media (max-width: 460px) {
+  .card__foot { gap: 8px; }
+  .card__add { width: 100%; }
+}
+
+/* Quick view нэг баганатай үед (таблет, утас): зургийг багасгаж, үнэ ба "Сагслах" товчийг ойртуулна */
+@media (max-width: 900px) {
+  .qv__media .bottle { width: auto; height: 220px; }
+  .qv__media .prod-img { height: 220px; }
+}
+@media (max-width: 560px) {
+  .modal { padding: 14px; }
+  .qv__media { padding: 18px; }
+  .qv__media .bottle { width: auto; height: 160px; }
+  .qv__media .prod-img { height: 160px; padding: 0; }
+  .qv__body { padding: 22px 20px 24px; }
+  .qv__name { font-size: 26px; }
+  /* Хямдралтай (хуучин + шинэ) үнэ 360px-д багтахгүй бол товч доод мөрөнд шилжинэ */
+  .qv__foot { flex-wrap: wrap; row-gap: 12px; }
+  .qv__foot .btn { margin-left: auto; }
+}
