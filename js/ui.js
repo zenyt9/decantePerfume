@@ -391,21 +391,75 @@ PM.ui = (function () {
   /* ------------------------------------------------------------------ */
 /*  Захиалгын туслахууд (профайл болон админд нийтлэг)                  */
   /* ------------------------------------------------------------------ */
+  /*
+   * Захиалгын төлөв (урсгалын дарааллаар):
+   *   new → packing → packed → delivering → done  (эсвэл cancelled)
+   * Хуучин өгөгдлийн "confirmed" төлвийг "packing" гэж үзнэ.
+   * "new" төлвийн нэр захиалагчид төлбөрөөс хамаарч өөр харагдана (orderStatusInfo-г үзнэ үү).
+   */
   var STATUS = {
-    new:        { label: "Шинэ",          cls: "st-new" },
-    confirmed:  { label: "Баталгаажсан",  cls: "st-confirmed" },
+    new:        { label: "Хүлээн авсан",     cls: "st-new" },
+    packing:    { label: "Баглаж байна",     cls: "st-packing" },
+    packed:     { label: "Багласан",         cls: "st-packed" },
     delivering: { label: "Хүргэлтэд гарсан", cls: "st-delivering" },
-    done:       { label: "Дууссан",       cls: "st-done" },
-    cancelled:  { label: "Цуцлагдсан",    cls: "st-cancelled" },
+    done:       { label: "Хүргэгдсэн",       cls: "st-done" },
+    cancelled:  { label: "Цуцлагдсан",       cls: "st-cancelled" },
   };
 
-  function statusInfo(status) {
-    return STATUS[status] || { label: status, cls: "" };
+  /** Төлвийн түлхүүрийг жигдлэх (хуучин "confirmed" → "packing") */
+  function normStatus(status) {
+    return status === "confirmed" ? "packing" : status;
   }
 
-  function statusBadge(status) {
-    var s = statusInfo(status);
+  /** QPay-ээр төлөх ёстой ч төлбөр хараахан ороогүй захиалга эсэх */
+  function awaitingPayment(order) {
+    var p = order && order.payment;
+    return !!(p && p.method === "qpay" && p.status === "pending");
+  }
+
+  /** Төлбөр төлөгдсөн (эсвэл гараар/хуучин урсгалаар хүлээн авсан) захиалга эсэх */
+  function isPaid(order) {
+    var p = order && order.payment;
+    if (!p || p.method !== "qpay") return true; // гараар төлөх / хуучин захиалга
+    return p.status === "paid";
+  }
+
+  /**
+   * Захиалагчид харагдах төлвийн нэр ба өнгө.
+   * Захиалга (object) өгвөл "new" төлвийг төлбөрөөс хамааруулна:
+   *   QPay төлбөр хүлээгдэж буй бол "Төлбөр хүлээгдэж байна", бусад үед "Хүлээн авсан".
+   * Зөвхөн төлвийн түлхүүр (string) өгч болно — хуучин дуудлагуудтай нийцтэй.
+   */
+  function statusInfo(orderOrStatus) {
+    var order = orderOrStatus && typeof orderOrStatus === "object" ? orderOrStatus : null;
+    var key = normStatus(order ? order.status : orderOrStatus);
+    var s = STATUS[key];
+    if (!s) return { key: key, label: key || "", cls: "" };
+    if (key === "new" && order && awaitingPayment(order)) {
+      return { key: key, label: "Төлбөр хүлээгдэж байна", cls: "st-new st-await" };
+    }
+    return { key: key, label: s.label, cls: s.cls };
+  }
+
+  function statusBadge(orderOrStatus) {
+    var s = statusInfo(orderOrStatus);
     return '<span class="status ' + s.cls + '">' + esc(s.label) + "</span>";
+  }
+
+  /**
+   * Төлвийн түүх: [{ status, at }] (хуучин "confirmed" → "packing").
+   * Түүхгүй хуучин захиалгад одоогийн төлвийг нэг мөрөөр буцаана.
+   */
+  function statusHistory(order) {
+    if (!order) return [];
+    var h = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+    h = h.filter(function (e) { return e && e.status; }).map(function (e) {
+      return { status: normStatus(e.status), at: e.at };
+    });
+    if (!h.length) {
+      return [{ status: normStatus(order.status), at: order.updatedAt || order.createdAt }];
+    }
+    return h;
   }
 
   /* Төлбөрийн төлвийн жижиг шошго (онлайн төлбөртэй захиалгад) */
@@ -432,6 +486,15 @@ PM.ui = (function () {
       " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
 
+  /** Богино огноо: энэ жилийнх бол "09-30 14:22", бусад үед бүтэн огноо */
+  function formatShortDate(ts) {
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return "";
+    if (d.getFullYear() !== new Date().getFullYear()) return formatDate(ts);
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
   /** Захиалгын мөрүүдийг богино текстээр */
   function orderItemsLine(order) {
     return order.items.map(function (it) {
@@ -449,10 +512,16 @@ PM.ui = (function () {
     renderQuickView: renderQuickView,
     buildOrderText: buildOrderText,
     genderLabel: genderLabel,
+    STATUS: STATUS,
+    normStatus: normStatus,
+    awaitingPayment: awaitingPayment,
+    isPaid: isPaid,
     statusInfo: statusInfo,
     statusBadge: statusBadge,
+    statusHistory: statusHistory,
     paymentBadge: paymentBadge,
     formatDate: formatDate,
+    formatShortDate: formatShortDate,
     orderItemsLine: orderItemsLine,
   };
 })();

@@ -1195,9 +1195,114 @@ body.cart-open .cart-drawer {
 /* Бараан дэвсгэрт тохирсон өнгө (админы .status, .pay-* шошготой ижил) */
 .st-new        { background: rgba(90,130,220,.16); color: #9db8f0; }
 .st-confirmed  { background: rgba(74,197,126,.15); color: #6fd79a; }
+.st-packing    { background: rgba(74,197,126,.15); color: #6fd79a; }
+.st-packed     { background: rgba(80,186,200,.15); color: #82d2dc; }
 .st-delivering { background: rgba(201,168,76,.16); color: #e3ca7f; }
 .st-done       { background: rgba(255,255,255,.08); color: var(--ink-soft); }
 .st-cancelled  { background: rgba(224,106,95,.15); color: #eb8b82; }
+/* "Шинэ" + QPay төлбөр хүлээгдэж буй (захиалагчид "Төлбөр хүлээгдэж байна") */
+.st-new.st-await { background: rgba(227,168,76,.16); color: #e3b25c; }
+
+/* Урт шошго ("Төлбөр хүлээгдэж байна") нарийн дэлгэцэд захиалгын дугаарыг хуваахгүй — шошго доош шилжинэ */
+.myorder__top { flex-wrap: wrap; row-gap: 6px; }
+.myorder__code { white-space: nowrap; }
+
+/* --- Захиалгын явц (tracker): Төлбөр → Баглаж байна → Багласан → Хүргэлтэд гарсан → Хүргэгдсэн ---
+   Хийгдсэн алхам — алт, одоогийн алхам — тодотгосон, дараагийнх — бүдэг.
+   Дэлгэц өргөн үед хэвтээ, утсан дээр (≤560px) босоо жагсаалт. */
+.track {
+  list-style: none; margin: 14px 0 6px; padding: 0;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.track__step {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  text-align: center; padding: 0 3px; min-width: 0;
+}
+/* Өмнөх алхамтай холбох шугам (цэгийн төвөөс төв хүртэл) */
+.track__step::before {
+  content: ""; position: absolute; z-index: 0;
+  top: 10px; left: calc(-50% + 13px); right: calc(50% + 13px); height: 2px;
+  border-radius: 2px; background: var(--line-strong);
+}
+.track__step:first-child::before { display: none; }
+/* Алтан шугам зөвхөн хоёр хийгдсэн алхмын хооронд (is-linked = энэ ба дараагийн алхам хийгдсэн) */
+.track__step.is-linked + .track__step::before { background: var(--gold); }
+
+.track__dot {
+  position: relative; z-index: 1; flex: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--line-strong); background: var(--surface-2);
+  font-size: 11px; font-weight: 700; line-height: 1; color: #16130a;
+  transition: box-shadow .2s var(--ease);
+}
+.track__step.is-done .track__dot { background: var(--gold); border-color: var(--gold); }
+.track__step.is-current .track__dot { box-shadow: 0 0 0 4px rgba(201,168,76,.22); }
+/* Төлбөр хүлээгдэж буй: хоосон алтан хүрээ + дотор нь анивчих цэг */
+.track__step.is-waiting .track__dot { background: var(--surface-2); border-color: var(--gold); }
+.track__step.is-waiting .track__dot::after {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gold);
+  animation: track-pulse 1.6s ease-in-out infinite;
+}
+@keyframes track-pulse { 50% { opacity: .35; transform: scale(.75); } }
+
+.track__label {
+  font-size: 12px; line-height: 1.3; color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.track__step.is-done .track__label { color: var(--ink-soft); }
+.track__step.is-current .track__label { color: var(--gold-dark); font-weight: 600; }
+.track__time {
+  font-size: 11px; line-height: 1.2; color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* Зөвхөн дэлгэц уншигчид (алхмын төлөв) */
+.track__sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.track-note { margin: 8px 0 12px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+
+/* Цуцлагдсан захиалга — tracker-ийн оронд */
+.track-cancel {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin: 12px 0; padding: 12px 14px;
+  border: 1px solid rgba(224,106,95,.3); border-radius: var(--radius-sm);
+  background: rgba(224,106,95,.08);
+}
+.track-cancel__icon {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(224,106,95,.2); color: #eb8b82; font-size: 12px; font-weight: 700;
+}
+.track-cancel__body { min-width: 0; }
+.track-cancel__title { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; margin: 2px 0 2px; font-size: 14px; font-weight: 600; color: #eb8b82; }
+.track-cancel__time { font-size: 12px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.track-cancel__text { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.track-cancel__text a { color: var(--gold); text-decoration: underline; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .track { grid-template-columns: 1fr; margin: 14px 0 4px; }
+  .track__step {
+    display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center;
+    column-gap: 12px; text-align: left; padding: 0 0 14px;
+  }
+  .track__step:last-child { padding-bottom: 0; }
+  /* Босоо шугам: энэ цэгээс дараагийн цэг хүртэл доош */
+  .track__step::before,
+  .track__step:first-child::before {
+    display: block; top: 22px; bottom: 0; left: 10px; right: auto; width: 2px; height: auto;
+    background: var(--line-strong);
+  }
+  .track__step:last-child::before { display: none; }
+  .track__step.is-linked + .track__step::before { background: var(--line-strong); }
+  .track .track__step.is-linked::before { background: var(--gold); }
+  .track__time { text-align: right; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track__step.is-waiting .track__dot::after { animation: none; }
+}
 
 @media (max-width: 480px) {
   .account__name { display: none; }

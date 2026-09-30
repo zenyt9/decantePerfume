@@ -13,14 +13,41 @@
   var esc = u.escapeHtml;
 
   var SIZES = [5, 10, 20, 50, 100];
+
+  /* Захиалгын төлөв — урсгалын дарааллаар:
+     Шинэ → Баглаж байна → Багласан → Хүргэлтэд гарсан → Хүргэгдсэн (эсвэл Цуцлагдсан).
+     Төлбөр ормогц сервер "packing" болгоно; үлдсэнийг админ гараар ахиулна. */
   var STATUS = {
-    new:        { label: "Шинэ",         cls: "st-new" },
-    confirmed:  { label: "Баталгаажсан", cls: "st-confirmed" },
-    delivering: { label: "Хүргэлтэд",    cls: "st-delivering" },
-    done:       { label: "Дууссан",      cls: "st-done" },
-    cancelled:  { label: "Цуцлагдсан",   cls: "st-cancelled" },
+    new:        { label: "Шинэ",             cls: "st-new" },
+    packing:    { label: "Баглаж байна",     cls: "st-packing" },
+    packed:     { label: "Багласан",         cls: "st-packed" },
+    delivering: { label: "Хүргэлтэд гарсан", cls: "st-delivering" },
+    done:       { label: "Хүргэгдсэн",       cls: "st-done" },
+    cancelled:  { label: "Цуцлагдсан",       cls: "st-cancelled" },
   };
-  var STATUS_ORDER = ["new", "confirmed", "delivering", "done", "cancelled"];
+  var STATUS_ORDER = ["new", "packing", "packed", "delivering", "done", "cancelled"];
+  var FLOW = ["new", "packing", "packed", "delivering", "done"];
+
+  /* Дараагийн алхам — мөр бүрт нэг товчоор төлвийг ахиулна */
+  var NEXT_STEP = {
+    packing:    { to: "packed",     label: "Баглаж дууссан" },
+    packed:     { to: "delivering", label: "Хүргэлтэд гаргах" },
+    delivering: { to: "done",       label: "Хүргэгдсэн" },
+  };
+
+  /* Захиалгын шүүлтүүр (chip). "new" chip зөвхөн гараар төлөх шинэ захиалга байвал гарна. */
+  var ORDER_FILTERS = [
+    { key: "todo",       label: "Хийх ажил",            count: true },
+    { key: "packing",    label: "Баглаж байна",         count: true },
+    { key: "packed",     label: "Багласан",             count: true },
+    { key: "delivering", label: "Хүргэлтэд",            count: true },
+    { key: "awaiting",   label: "Төлбөр хүлээгдэж буй", count: true },
+    { key: "new",        label: "Шинэ",                 count: true, hideEmpty: true },
+    { key: "done",       label: "Хүргэгдсэн" },
+    { key: "cancelled",  label: "Цуцлагдсан" },
+    { key: "all",        label: "Бүгд" },
+  ];
+  var FILTER_KEYS = ORDER_FILTERS.map(function (f) { return f.key; });
 
   var state = {
     user: null,
@@ -31,9 +58,10 @@
     users: [],
     reviews: [],
     stats: null,
-    orderFilter: "all",
+    orderFilter: "todo",
     search: { products: "", orders: "", customers: "" },
   };
+  var lastSync = 0; // захиалгыг серверээс хамгийн сүүлд татсан мөч
   var VIEWS = ["dashboard", "products", "brands", "orders", "customers", "reviews"];
 
   var root = function () { return u.qs("#admin-root"); };
@@ -42,8 +70,11 @@
   /*  Modal                                                             */
   /* ================================================================== */
   function adOpen(html) {
+    var m = u.qs("#ad-modal");
     u.qs("#ad-modal-content").innerHTML = html;
-    u.qs("#ad-modal").setAttribute("aria-hidden", "false");
+    // Шинэ цонх үргэлж дээрээсээ (өмнөх цонхны гүйлгэсэн байрлал үлдэхгүй)
+    m.scrollTop = 0;
+    m.setAttribute("aria-hidden", "false");
     u.qs("#ad-overlay").classList.add("is-visible");
   }
   function adClose() {
@@ -124,6 +155,7 @@
     state.stats = r[3];
     state.users = r[4].users || [];
     state.reviews = r[5].reviews || [];
+    lastSync = Date.now();
   }
   function reloadProducts() { return PM.api.get("/products?all=1").then(function (r) { state.products = r.products; }); }
   function reloadBrands() { return PM.api.get("/brands").then(function (r) { state.brands = r.brands; }); }
@@ -141,15 +173,19 @@
   /* ================================================================== */
   function renderApp() {
     var nav = [
+      // Захиалга хамгийн их ашиглагдах тул хоёрдугаарт (утсан дээр шууд харагдана)
       { key: "dashboard", label: "Хянах самбар", icon: "▤" },
+      { key: "orders",    label: "Захиалга",      icon: "🧾" },
       { key: "products",  label: "Бүтээгдэхүүн", icon: "🧴" },
       { key: "brands",    label: "Брэнд",         icon: "✦" },
-      { key: "orders",    label: "Захиалга",      icon: "🧾" },
       { key: "customers", label: "Хэрэглэгч",     icon: "👤" },
       { key: "reviews",   label: "Сэтгэгдэл",     icon: "⭐" },
     ].map(function (n) {
+      // "Захиалга" цэсэнд хийх ажлын тоог алтан бөмбөлгөөр харуулна
+      var badge = n.key === "orders"
+        ? '<span class="ad-nav__badge" id="ad-nav-todo" title="Хийх ажил" hidden></span>' : "";
       return '<button type="button" class="ad-nav__item' + (state.view === n.key ? " is-active" : "") +
-        '" data-view="' + n.key + '"><span class="ad-nav__ico">' + n.icon + "</span>" + esc(n.label) + "</button>";
+        '" data-view="' + n.key + '"><span class="ad-nav__ico">' + n.icon + "</span>" + esc(n.label) + badge + "</button>";
     }).join("");
 
     root().innerHTML =
@@ -171,19 +207,25 @@
     // Анхны харагдацыг URL hash-аас (эсвэл dashboard) авна
     var initial = (location.hash || "").replace("#", "");
     if (VIEWS.indexOf(initial) === -1) initial = "dashboard";
+    updateNavBadge();
     switchView(initial, false);
-    try { history.replaceState({ adminView: initial }, "", "#" + initial); } catch (e) {}
+    try { history.replaceState({ adminView: initial, orderFilter: state.orderFilter }, "", "#" + initial); } catch (e) {}
   }
 
   function switchView(name, push) {
     state.view = name;
     u.qsa(".ad-nav__item").forEach(function (b) {
-      b.classList.toggle("is-active", b.getAttribute("data-view") === name);
+      var on = b.getAttribute("data-view") === name;
+      b.classList.toggle("is-active", on);
+      // Утсан дээр хэвтээ гүйдэг цэсэнд идэвхтэй хэсгийг харагдуулна
+      if (on) scrollIntoRow(u.qs(".ad-nav"), b);
     });
     // Хөтчийн back товч админ дотор ажиллахын тулд history-д бичнэ
+    // (захиалгын шүүлтүүрийг мөн хадгална — буцахад ижил жагсаалт гарна)
     if (push !== false) {
-      try { history.pushState({ adminView: name }, "", "#" + name); } catch (e) {}
+      try { history.pushState({ adminView: name, orderFilter: state.orderFilter }, "", "#" + name); } catch (e) {}
     }
+    window.scrollTo(0, 0);
     if (name === "dashboard") return renderDashboard();
     if (name === "products") return renderProducts();
     if (name === "brands") return renderBrands();
@@ -215,15 +257,21 @@
         '<span class="ad-stat__hint">' + esc(c.hint) + "</span></div>";
     }).join("");
 
-    var byStatus = s.byStatus || {};
-    var statusRow = STATUS_ORDER.map(function (k) {
-      return '<div class="ad-sbadge"><span class="status ' + STATUS[k].cls + '">' + STATUS[k].label + "</span>" +
-        '<b>' + (byStatus[k] || 0) + "</b></div>";
+    // Төлөв тус бүрийн тоо (хуучин "confirmed"-ийг "Баглаж байна"-д тооцно).
+    // Товч бүр тухайн шүүлтүүрийн жагсаалт руу аваачна — тоо нь нээгдэх жагсаалттай яг таарна.
+    // "Шинэ"-г QPay төлбөр хүлээгдэж буй ба бусад (гараар төлөх) гэж салгаж харуулна.
+    var statusRow = ["awaiting"].concat(STATUS_ORDER).map(function (k) {
+      var n = countOrders(k);
+      if (k === "new" && !n) return "";
+      var st = k === "awaiting" ? { label: "Төлбөр хүлээгдэж буй", cls: STATUS.new.cls } : STATUS[k];
+      return '<button type="button" class="ad-sbadge" data-ad="goto-orders" data-filter="' + k + '">' +
+        '<span class="status ' + st.cls + '">' + esc(st.label) + "</span>" +
+        "<b>" + n + "</b></button>";
     }).join("");
 
     var recent = state.orders.slice(0, 6);
     var recentRows = recent.length
-      ? recent.map(orderRowHTML).join("")
+      ? recent.map(orderRow).join("")
       : '<tr><td colspan="6" class="ad-empty">Одоогоор захиалга ирээгүй байна.</td></tr>';
 
     var quickNav =
@@ -236,21 +284,59 @@
     main().innerHTML =
       pageHead("Хянах самбар", "Дэлгүүрийн ерөнхий байдал",
         '<button class="btn btn--solid" data-ad="product-new">＋ Шинэ бараа нэмэх</button>') +
+      todoPanelHTML() +
       quickNav +
       '<div class="ad-stats">' + cards + "</div>" +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Нөөц хуулбар (backup)</h2>' +
+      '<div class="ad-panel ad-panel--orders"><div class="ad-panel__bar"><h2 class="ad-panel__title">Сүүлийн захиалгууд</h2>' +
+        '<button type="button" class="btn btn--text btn--sm" data-ad="goto-orders" data-filter="all">Бүгдийг харах →</button></div>' +
+        '<div class="ad-tablewrap"><table class="ad-table ad-otable">' + orderThead() +
+        "<tbody>" + recentRows + "</tbody></table></div></div>" +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Захиалга төлвөөр</h2><div class="ad-sbadges">' + statusRow + "</div></div>" +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Нөөц хуулбар (backup)</h2><div class="ad-panel__body">' +
         '<p class="ad-hint">' +
           'Захиалга, хэрэглэгч, барааны бүх мэдээллийг нэг .json файлаар татаж аваад ' +
           'компьютер эсвэл Google Drive-даа хадгалаарай. Долоо хоногт нэг удаа татаж байвал сэтгэл амар.</p>' +
-        '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Нөөц хуулбар татах (.json)</a></div>' +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Аюулгүй байдал</h2>' +
+        '<a class="btn btn--outline btn--sm" href="/api/admin/export" download>⬇ Нөөц хуулбар татах (.json)</a></div></div>' +
+      '<div class="ad-panel"><h2 class="ad-panel__title">Аюулгүй байдал</h2><div class="ad-panel__body">' +
         '<p class="ad-hint">Админы нууц үгээ хэнд ч бүү хэлээрэй. Хүчтэй нууц үг сонгож, үе үе сольж байхыг зөвлөе.</p>' +
-        '<button class="btn btn--outline btn--sm" data-ad="change-password">Нууц үг солих</button></div>' +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Захиалга төлвөөр</h2><div class="ad-sbadges">' + statusRow + "</div></div>" +
-      '<div class="ad-panel"><h2 class="ad-panel__title">Сүүлийн захиалгууд</h2>' +
-        '<div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-          "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th>" +
-        "</tr></thead><tbody>" + recentRows + "</tbody></table></div></div>";
+        '<button class="btn btn--outline btn--sm" data-ad="change-password">Нууц үг солих</button></div></div>';
+  }
+
+  /* "Өнөөдөр хийх ажил" — хамгийн чухал гурван том товч + төлбөр хүлээгдэж буй */
+  function todoPanelHTML() {
+    var tiles = [
+      { f: "packing",    ico: "📦", label: "Баглах",           hint: "Төлбөр нь орсон, баглахыг хүлээж буй" },
+      { f: "packed",     ico: "🚚", label: "Хүргэлтэд гаргах", hint: "Баглаж дууссан, хүргэлтэд гаргахад бэлэн" },
+      { f: "delivering", ico: "🛵", label: "Хүргэлтэд яваа",   hint: "Хүргэлтийн ажилтан хүлээлгэн өгмөгц «Хүргэгдсэн» болгоорой" },
+    ];
+    var total = 0;
+    var tilesHtml = tiles.map(function (t) {
+      var n = countOrders(t.f);
+      total += n;
+      return '<button type="button" class="ad-tile ad-tile--' + t.f + (n ? " is-hot" : " is-zero") +
+        '" data-ad="goto-orders" data-filter="' + t.f + '" aria-label="' + esc(t.label + ": " + n + " захиалга") + '">' +
+        '<span class="ad-tile__ico" aria-hidden="true">' + t.ico + "</span>" +
+        '<span class="ad-tile__n">' + n + "</span>" +
+        '<span class="ad-tile__txt"><b>' + esc(t.label) + "</b><em>" + esc(t.hint) + "</em></span>" +
+      "</button>";
+    }).join("");
+    var waiting = countOrders("awaiting");
+    return '<section class="ad-todo" aria-label="Өнөөдөр хийх ажил">' +
+      '<div class="ad-todo__head"><div>' +
+        '<h2 class="ad-todo__title">Өнөөдөр хийх ажил</h2>' +
+        '<p class="ad-todo__sub">' + (total
+          ? "Товч дээр дарж тухайн захиалгуудаа нээгээрэй."
+          : "Одоогоор хийх ажил алга. Төлбөр нь орсон захиалга энд автоматаар нэмэгдэнэ.") + "</p>" +
+      "</div>" + refreshBtn() + "</div>" +
+      '<div class="ad-todo__grid">' + tilesHtml + "</div>" +
+      '<button type="button" class="ad-tile-mini" data-ad="goto-orders" data-filter="awaiting">' +
+        '<span aria-hidden="true">⏳</span><span>Төлбөр хүлээгдэж буй <b>' + waiting + "</b></span>" +
+        "<em>Захиалагч төлбөрөө төлмөгц «Баглах» руу автоматаар шилжинэ</em>" +
+      "</button>" +
+    "</section>";
+  }
+  function refreshBtn() {
+    return '<button type="button" class="btn btn--outline btn--sm ad-refresh" data-ad="orders-refresh" title="Шинэ захиалга ирсэн эсэхийг шалгах">↻ Шинэчлэх</button>';
   }
 
   /* ================================================================== */
@@ -468,16 +554,89 @@
   /* ================================================================== */
   /*  Харагдац: Захиалга                                                 */
   /* ================================================================== */
-  function orderRowHTML(o) {
-    var st = STATUS[o.status] || { label: o.status, cls: "" };
-    return '<tr>' +
-      '<td><b>' + esc(o.code) + "</b></td>" +
-      "<td>" + esc(dateStr(o.createdAt)) + "</td>" +
-      "<td>" + esc(o.customer.name) + '<br /><span class="ad-muted">' + esc(o.customer.phone) + "</span></td>" +
-      "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
-      "<td><b>" + fmt(o.total) + "</b></td>" +
-      '<td><span class="status ' + st.cls + '">' + esc(st.label) + "</span></td>" +
-      "</tr>";
+  /* Хуучин өгөгдлийн "confirmed" төлвийг "Баглаж байна" гэж үзнэ */
+  function orderStatus(o) { return o.status === "confirmed" ? "packing" : o.status; }
+
+  /* QPay захиалга, төлбөр нь хараахан ороогүй (Шинэ төлөвтэй) */
+  function awaitingPayment(o) {
+    var p = o.payment;
+    return orderStatus(o) === "new" && !!p && p.method === "qpay" && p.status !== "paid";
+  }
+
+  function matchFilter(o, f) {
+    var s = orderStatus(o);
+    if (f === "all") return true;
+    if (f === "todo") return s === "packing" || s === "packed" || s === "delivering";
+    if (f === "awaiting") return awaitingPayment(o);
+    if (f === "new") return s === "new" && !awaitingPayment(o);
+    return s === f;
+  }
+  function countOrders(f) {
+    return state.orders.filter(function (o) { return matchFilter(o, f); }).length;
+  }
+  function itemCount(o) {
+    return (o.items || []).reduce(function (n, it) { return n + it.qty; }, 0);
+  }
+
+  function statusBadge(o) {
+    var s = orderStatus(o);
+    var st = STATUS[s] || { label: s, cls: "" };
+    return '<span class="status ' + st.cls + '">' + esc(st.label) + "</span>";
+  }
+
+  /* Утасны дугаар — дарахад шууд залгана (утаснаасаа ажиллахад хялбар) */
+  var PHONE_ICO = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 ' +
+    '19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 ' +
+    '6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+  function telLink(phone, extraCls) {
+    var p = String(phone || "").trim();
+    if (!p) return '<span class="ad-muted">Утас оруулаагүй</span>';
+    var num = p.replace(/[^\d+]/g, "");
+    return '<a class="ad-tel' + (extraCls ? " " + extraCls : "") + '" href="tel:' + esc(num) + '" aria-label="' +
+      esc(p) + ' дугаар руу залгах">' + PHONE_ICO + "<span>" + esc(p) + "</span></a>";
+  }
+
+  /* Дараагийн алхам: Баглаж байна → «Баглаж дууссан», Багласан → «Хүргэлтэд гаргах»,
+     Хүргэлтэд гарсан → «Хүргэгдсэн». Гараар төлөх (эсвэл төлөгдсөн) шинэ захиалга → «Баглаж эхлэх».
+     QPay төлбөр хүлээгдэж буй захиалгад товч гарахгүй — төлбөр ормогц сервер өөрөө ахиулна. */
+  function nextStep(o) {
+    var s = orderStatus(o);
+    if (s === "new") return awaitingPayment(o) ? null : { to: "packing", label: "Баглаж эхлэх" };
+    return NEXT_STEP[s] || null;
+  }
+  function stepHTML(o, big) {
+    var n = nextStep(o);
+    if (n) {
+      return '<button type="button" class="ad-step' + (big ? " ad-step--lg" : "") + '" data-ad="order-step" data-id="' +
+        esc(o.id) + '" data-to="' + n.to + '">' + esc(n.label) +
+        '<span class="ad-step__ico" aria-hidden="true">' + (n.to === "done" ? "✓" : "→") + "</span></button>";
+    }
+    if (awaitingPayment(o)) {
+      return '<span class="ad-step-note">' +
+        (o.payment.status === "pending" ? "Төлбөр хүлээгдэж байна" : "Төлбөр ороогүй") + "</span>";
+    }
+    return "";
+  }
+
+  function orderThead() {
+    return "<thead><tr><th>Захиалга</th><th>Захиалагч</th><th>Дүн</th><th>Төлөв</th>" +
+      "<th>Дараагийн алхам</th><th></th></tr></thead>";
+  }
+  /* Захиалгын мөр — утсан дээр CSS-ээр карт болж харагдана */
+  function orderRow(o) {
+    var c = o.customer || {};
+    return '<tr class="ad-orow">' +
+      '<td class="oc-code"><button type="button" class="ad-olink" data-ad="order-view" data-id="' + esc(o.id) + '">' +
+        esc(o.code) + '</button><span class="ad-muted">' + esc(dateStr(o.createdAt)) + "</span></td>" +
+      '<td class="oc-cust"><b>' + esc(c.name) + "</b>" + telLink(c.phone) + "</td>" +
+      '<td class="oc-sum"><b>' + fmt(o.total) + '</b> <span class="ad-muted">· ' + itemCount(o) + " ш</span>" +
+        '<div class="ad-otags">' + payTag(o) + "</div></td>" +
+      '<td class="oc-status">' + statusBadge(o) + "</td>" +
+      '<td class="oc-step">' + stepHTML(o) + "</td>" +
+      '<td class="oc-more"><button type="button" class="btn btn--text btn--sm" data-ad="order-view" data-id="' +
+        esc(o.id) + '">Дэлгэрэнгүй</button></td>' +
+    "</tr>";
   }
 
   /* Төлбөрийн шошго: онлайн (QPay) эсвэл гараар */
@@ -500,81 +659,261 @@
     return html;
   }
 
-  function orderRowFull(o) {
-    return "<tr>" +
-      "<td><b>" + esc(o.code) + "</b></td>" +
-      "<td>" + esc(dateStr(o.createdAt)) + "</td>" +
-      "<td>" + esc(o.customer.name) + '<br /><span class="ad-muted">' + esc(o.customer.phone) + "</span></td>" +
-      "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
-      "<td><b>" + fmt(o.total) + "</b><br />" + payTag(o) + "</td>" +
-      "<td>" + statusSelect(o) + "</td>" +
-      '<td class="ad-actions"><button class="btn btn--text btn--sm" data-ad="order-view" data-id="' + o.id + '">Дэлгэрэнгүй</button></td>' +
-      "</tr>";
+  /* Шүүлтүүрийн chip-үүд (тоотой) */
+  function orderChipsHTML() {
+    return ORDER_FILTERS.map(function (c) {
+      var n = c.count ? countOrders(c.key) : null;
+      var active = state.orderFilter === c.key;
+      if (c.hideEmpty && !n && !active) return "";
+      return '<button type="button" class="filter-chip ad-chip' + (c.key === "todo" ? " ad-chip--todo" : "") +
+        (active ? " is-active" : "") + '" data-ad="order-filter" data-filter="' + c.key + '" aria-pressed="' + active + '">' +
+        esc(c.label) + (n != null ? ' <span class="ad-chip__n">' + n + "</span>" : "") + "</button>";
+    }).join("");
   }
+
+  var EMPTY_MSG = {
+    todo:       "Одоогоор хийх ажил алга. Төлбөр нь орсон захиалга энд автоматаар гарч ирнэ.",
+    packing:    "Баглах захиалга алга.",
+    packed:     "Хүргэлтэд гаргах захиалга алга.",
+    delivering: "Хүргэлтэд яваа захиалга алга.",
+    awaiting:   "Төлбөр хүлээгдэж буй захиалга алга.",
+  };
+
   function fillOrders() {
     var filter = state.orderFilter;
     var q = (state.search.orders || "").trim().toLowerCase();
-    var list = state.orders.filter(function (o) {
-      if (filter !== "all" && o.status !== filter) return false;
-      return !q || (o.code + " " + o.customer.name + " " + o.customer.phone).toLowerCase().indexOf(q) > -1;
-    });
-    var tb = u.qs("#ad-order-body");
-    if (tb) tb.innerHTML = list.length
-      ? list.map(orderRowFull).join("")
-      : '<tr><td colspan="7" class="ad-empty">Захиалга олдсонгүй.</td></tr>';
-  }
-  function renderOrders() {
-    var filter = state.orderFilter;
-    var chips = [{ key: "all", label: "Бүгд" }].concat(STATUS_ORDER.map(function (k) {
-      return { key: k, label: STATUS[k].label };
-    })).map(function (c) {
-      return '<button class="filter-chip' + (filter === c.key ? " is-active" : "") + '" data-status="' + c.key + '">' + esc(c.label) + "</button>";
-    }).join("");
+    var matchQ = function (o) {
+      var c = o.customer || {};
+      return !q || (o.code + " " + c.name + " " + c.phone).toLowerCase().indexOf(q) > -1;
+    };
+    var list = state.orders.filter(function (o) { return matchFilter(o, filter) && matchQ(o); });
 
+    var chips = u.qs("#ad-order-chips");
+    if (chips) {
+      chips.innerHTML = orderChipsHTML();
+      scrollIntoRow(chips, u.qs(".filter-chip.is-active", chips));
+    }
+
+    var tb = u.qs("#ad-order-body");
+    if (!tb) return;
+    if (list.length) { tb.innerHTML = list.map(orderRow).join(""); return; }
+
+    var msg;
+    if (q) {
+      // Хайлт одоогийн шүүлтүүрт олдоогүй ч бусад төлөвт байж магадгүй
+      var elsewhere = state.orders.filter(matchQ).length;
+      msg = "«" + esc(state.search.orders.trim()) + "» хайлтаар энэ хэсгээс захиалга олдсонгүй.";
+      if (elsewhere && filter !== "all") {
+        msg += '<br /><button type="button" class="btn btn--outline btn--sm ad-empty__btn" data-ad="order-filter" data-filter="all">' +
+          "Бүх захиалгаас харах (" + elsewhere + ")</button>";
+      }
+    } else {
+      msg = esc(EMPTY_MSG[filter] || "Захиалга олдсонгүй.");
+    }
+    tb.innerHTML = '<tr><td colspan="6" class="ad-empty">' + msg + "</td></tr>";
+  }
+
+  function renderOrders() {
+    if (FILTER_KEYS.indexOf(state.orderFilter) === -1) state.orderFilter = "todo";
     main().innerHTML =
-      pageHead("Захиалга", state.orders.length + " захиалга", searchBox("orders", "Код, нэр, утсаар хайх…")) +
-      '<div class="ad-panel ad-panel--pad"><div class="chips">' + chips + "</div></div>" +
-      '<div class="ad-panel"><div class="ad-tablewrap"><table class="ad-table"><thead><tr>' +
-        "<th>Код</th><th>Огноо</th><th>Захиалагч</th><th>Тоо</th><th>Дүн</th><th>Төлөв</th><th></th>" +
-      '</tr></thead><tbody id="ad-order-body"></tbody></table></div></div>';
+      pageHead("Захиалга",
+        "Төлбөр орсон захиалга автоматаар «Баглаж байна» төлөвт орно. Дараагийн алхмын товчийг дарж төлвийг шинэчлээрэй.",
+        searchBox("orders", "Код, нэр, утсаар хайх…") + refreshBtn()) +
+      '<div class="ad-chipbar" id="ad-order-chips" role="toolbar" aria-label="Төлвөөр шүүх"></div>' +
+      '<div class="ad-panel ad-panel--orders"><div class="ad-tablewrap"><table class="ad-table ad-otable">' +
+        orderThead() + '<tbody id="ad-order-body"></tbody></table></div></div>';
     fillOrders();
     onSearch("orders", fillOrders);
   }
 
-  function statusSelect(o) {
-    var opts = STATUS_ORDER.map(function (k) {
-      return '<option value="' + k + '"' + (o.status === k ? " selected" : "") + ">" + STATUS[k].label + "</option>";
-    }).join("");
-    return '<select class="ad-status-select ' + (STATUS[o.status] ? STATUS[o.status].cls : "") +
-      '" data-order-status data-id="' + o.id + '">' + opts + "</select>";
+  /* Chip дарахад: шүүлтүүрийг солиод history-ийн одоогийн мөрөнд хадгална */
+  function setOrderFilter(f) {
+    if (FILTER_KEYS.indexOf(f) === -1) return;
+    state.orderFilter = f;
+    try { history.replaceState({ adminView: "orders", orderFilter: f }, "", "#orders"); } catch (e) {}
+    if (state.view === "orders") fillOrders();
+  }
+  /* Хянах самбараас тодорхой шүүлтүүртэй захиалгын жагсаалт руу очих */
+  function gotoOrders(f) {
+    state.orderFilter = FILTER_KEYS.indexOf(f) > -1 ? f : "todo";
+    state.search.orders = "";
+    switchView("orders");
   }
 
-  async function changeOrderStatus(id, status) {
+  /* ------------------------------------------------------------------ */
+  /*  Төлөв солих (нэг товчоор) ба шинэчлэх                              */
+  /* ------------------------------------------------------------------ */
+  var STEP_TOAST = {
+    new:        "«Шинэ» төлөвт орлоо",
+    packing:    "Баглаж эхэллээ",
+    packed:     "Багласан гэж тэмдэглэлээ",
+    delivering: "Хүргэлтэд гарлаа. Захиалагчид и-мэйлээр мэдэгдэнэ",
+    done:       "Хүргэгдсэн гэж тэмдэглэлээ. Захиалагчид и-мэйлээр мэдэгдэнэ",
+    cancelled:  "Захиалга цуцлагдлаа",
+  };
+
+  function stepOrder(id, to, btn) {
+    var o = getOrder(id);
+    if (!o || !STATUS[to]) return;
+    var who = withDot(o.code + (o.customer && o.customer.name ? " · " + o.customer.name : ""));
+    var run = function () { setOrderStatus(id, to, btn); };
+    // Алхам бүрийг нэг удаа асууна — эзэн "Тийм" дараад л цааш явна
+    var ask = STEP_CONFIRM[to];
+    if (!ask) return run();
+    confirmModal(ask.title, who + " " + ask.msg, run, "Тийм", false, "Үгүй");
+  }
+
+  /* Алхам бүрийн асуулт (и-мэйл очих эсэхийг тодорхой хэлнэ) */
+  var STEP_CONFIRM = {
+    packing:    { title: "Баглаж эхлэх үү?",   msg: "Захиалга «Баглаж байна» төлөвт орно." },
+    packed:     { title: "Баглаж дууссан уу?", msg: "Захиалга «Багласан» төлөвт орно." },
+    delivering: { title: "Хүргэлтэд гаргах уу?",
+                  msg: "Захиалагчид «Захиалга хүргэлтэд гарлаа» гэсэн и-мэйл очно." },
+    done:       { title: "Хүргэгдсэн үү?",
+                  msg: "Хүргэлтийн ажилтан захиалгыг хүлээлгэн өгсөн бол «Тийм» дарна уу. " +
+                       "Захиалагчид «Захиалга хүргэгдлээ» гэсэн и-мэйл очно." },
+  };
+
+  var busyOrders = {}; // давхар дарахаас сэргийлнэ
+  async function setOrderStatus(id, status, btn) {
+    if (busyOrders[id]) return;
+    busyOrders[id] = true;
+    var yes = u.qs("#ad-confirm-yes");
+    if (yes) yes.disabled = true;
+    if (btn) { btn.disabled = true; btn.classList.add("is-busy"); }
     try {
       await PM.api.patch("/orders/" + id, { status: status });
       await Promise.all([reloadOrders(), reloadStats()]);
+      lastSync = Date.now();
+      adClose();
       var o = getOrder(id);
-      u.toast("Төлөв солигдлоо: " + (STATUS[status] ? STATUS[status].label : status), "success");
-      // Select-ийн өнгийг шинэчлэх
-      var sel = u.qs('[data-order-status][data-id="' + id + '"]');
-      if (sel) sel.className = "ad-status-select " + (STATUS[status] ? STATUS[status].cls : "");
-    } catch (err) { u.toast(err.message, "error"); }
+      u.toast((o ? o.code + ": " : "") + (STEP_TOAST[status] || "Төлөв солигдлоо"), "success");
+      refreshCurrentView();
+    } catch (err) {
+      adClose();
+      u.toast(err.message, "error");
+      if (btn && btn.isConnected) { btn.disabled = false; btn.classList.remove("is-busy"); }
+    } finally {
+      delete busyOrders[id];
+    }
+  }
+
+  /* Одоогийн харагдацыг шинэ өгөгдлөөр дахин зурна (шүүлтүүр, хайлт хэвээр) */
+  function refreshCurrentView() {
+    updateNavBadge();
+    if (state.view === "orders") fillOrders();
+    else if (state.view === "dashboard") renderDashboard();
+  }
+  function updateNavBadge() {
+    var el = u.qs("#ad-nav-todo");
+    if (!el) return;
+    var n = countOrders("todo");
+    el.textContent = n;
+    el.hidden = !n;
+  }
+  /* Серверээс захиалгыг дахин татах ("Шинэчлэх" товч, эсвэл апп руу буцаж ороход) */
+  async function refreshOrders(btn, silent) {
+    if (btn) btn.disabled = true;
+    try {
+      await Promise.all([reloadOrders(), reloadStats()]);
+      lastSync = Date.now();
+      refreshCurrentView();
+      if (!silent) u.toast("Захиалгын мэдээлэл шинэчлэгдлээ", "info");
+    } catch (err) {
+      if (!silent) u.toast(err.message, "error");
+    } finally {
+      if (btn && btn.isConnected) btn.disabled = false;
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Захиалгын дэлгэрэнгүй                                              */
+  /* ------------------------------------------------------------------ */
+  /* Төлвийн түүх: statusHistory (хуучин захиалгад байхгүй бол одоогийн төлвөөр нөхнө)
+     дээр төлбөр орсон мөчийг цаг хугацааных нь дарааллаар нэмнэ */
+  function orderEvents(o) {
+    var h = (Array.isArray(o.statusHistory) && o.statusHistory.length)
+      ? o.statusHistory
+      : [{ status: o.status, at: o.status === "new" ? o.createdAt : (o.updatedAt || o.createdAt) }];
+    var ev = [];
+    h.forEach(function (x) {
+      if (!x || !x.status) return;
+      var s = x.status === "confirmed" ? "packing" : x.status;
+      var prev = ev[ev.length - 1];
+      if (prev && prev.status === s) return; // дараалсан давхардлыг алгасна
+      ev.push({ status: s, at: x.at });
+    });
+    if (!ev.length || ev[0].status !== "new") ev.unshift({ status: "new", at: o.createdAt });
+
+    var p = o.payment;
+    if (p && p.status === "paid" && p.paidAt) {
+      var i = 1;
+      while (i < ev.length && !(ev[i].at >= p.paidAt)) i++;
+      ev.splice(i, 0, { pay: true, at: p.paidAt,
+        label: p.paidManually ? "Төлбөрийг гараар хүлээн авсан" : "Төлбөр төлөгдсөн" });
+    }
+    return ev;
+  }
+  function tlItem(cls, label, when) {
+    return '<li class="ad-tl__item ' + esc(cls) + '"><span class="ad-tl__dot" aria-hidden="true"></span>' +
+      '<div class="ad-tl__body"><b>' + esc(label) + "</b>" + (when ? "<span>" + esc(when) + "</span>" : "") + "</div></li>";
+  }
+  /* Босоо явцын шугам: болсон алхмууд (огноотой) + цаашдын алхмууд (бүдэг) */
+  function timelineHTML(o) {
+    var ev = orderEvents(o);
+    var lastIdx = -1;
+    ev.forEach(function (x, i) { if (!x.pay) lastIdx = i; });
+    var items = ev.map(function (x, i) {
+      var label = x.pay ? x.label
+        : x.status === "new" ? "Захиалга ирсэн"
+        : (STATUS[x.status] ? STATUS[x.status].label : x.status);
+      var cls = x.pay ? "is-pay" : "tl-" + x.status + (i === lastIdx ? " is-current" : "");
+      return tlItem(cls, label, x.at ? dateStr(x.at) : "");
+    });
+    var cur = orderStatus(o);
+    if (cur !== "done" && cur !== "cancelled") {
+      if (awaitingPayment(o)) items.push(tlItem("is-todo", "Төлбөр төлөгдөх", ""));
+      var idx = FLOW.indexOf(cur);
+      if (idx > -1) FLOW.slice(idx + 1).forEach(function (k) { items.push(tlItem("is-todo", STATUS[k].label, "")); });
+    }
+    return '<ol class="ad-tl">' + items.join("") + "</ol>";
   }
 
   function openOrderDetail(id) {
     var o = getOrder(id);
     if (!o) return;
-    var items = o.items.map(function (it) {
+    var c = o.customer || {};
+    var cur = orderStatus(o);
+    var items = (o.items || []).map(function (it) {
       return "<tr><td>" + esc(it.brand + " " + it.name) + "</td><td>" + it.ml + " мл</td><td>" + it.qty +
         "</td><td>" + fmt(it.unitPrice) + "</td><td>" + fmt(it.lineTotal) + "</td></tr>";
     }).join("");
 
+    var step = nextStep(o);
+    var nextBox = step
+      ? '<div class="ad-onext"><span class="ad-onext__label">Дараагийн алхам</span>' + stepHTML(o, true) +
+          (step.to === "delivering" || step.to === "done"
+            ? '<span class="ad-onext__hint">Дарахад захиалагчид и-мэйлээр мэдэгдэнэ.</span>' : "") +
+        "</div>"
+      : awaitingPayment(o)
+        ? '<div class="ad-onext ad-onext--muted">Захиалагч QPay-ээр төлбөрөө төлмөгц захиалга автоматаар «Баглаж байна» төлөвт орно.</div>'
+        : "";
+
     var html =
-      '<div class="ad-form-wrap">' +
-        '<div class="ad-order-head"><h3 class="modal__title">Захиалга ' + esc(o.code) + "</h3>" +
-          '<span class="status ' + (STATUS[o.status] ? STATUS[o.status].cls : "") + '">' +
-            (STATUS[o.status] ? STATUS[o.status].label : o.status) + "</span></div>" +
-        '<p class="ad-muted">' + esc(dateStr(o.createdAt)) + " · " + esc(o.userEmail || "") + "</p>" +
+      '<div class="ad-form-wrap ad-odetail">' +
+        '<div class="ad-order-head"><h3 class="modal__title">Захиалга <span class="ad-code">' + esc(o.code) + "</span></h3>" + statusBadge(o) + "</div>" +
+        '<p class="ad-muted">' + esc(dateStr(o.createdAt)) + (o.userEmail ? " · " + esc(o.userEmail) : "") + "</p>" +
+        nextBox +
+        '<div class="ad-odgrid">' +
+          '<div><h4 class="ad-subhead">Захиалагч</h4><div class="ad-ocust">' +
+            '<b class="ad-ocust__name">' + esc(c.name) + "</b>" +
+            telLink(c.phone, "ad-tel--lg") +
+            (c.address ? '<p class="ad-ocust__line"><span>Хаяг</span>' + esc(c.address) + "</p>" : "") +
+            (c.note ? '<p class="ad-ocust__line"><span>Тэмдэглэл</span>' + esc(c.note) + "</p>" : "") +
+          "</div></div>" +
+          '<div><h4 class="ad-subhead">Явц</h4>' + timelineHTML(o) + "</div>" +
+        "</div>" +
+        '<h4 class="ad-subhead">Бараа</h4>' +
         '<div class="ad-tablewrap"><table class="ad-table ad-table--sm"><thead><tr>' +
           "<th>Бараа</th><th>Хэмжээ</th><th>Тоо</th><th>Нэгж үнэ</th><th>Дүн</th></tr></thead><tbody>" + items + "</tbody></table></div>" +
         '<div class="ad-sum">' +
@@ -587,22 +926,28 @@
           (o.payment && o.payment.intentId
             ? '<div><span>Wire гүйлгээний дугаар</span><b class="ad-mono">' + esc(o.payment.intentId) + "</b></div>" : "") +
         "</div>" +
-        (o.payment && o.payment.method === "qpay" && o.payment.status === "pending" && o.status !== "cancelled"
+        (o.payment && o.payment.method === "qpay" && o.payment.status === "pending" && cur !== "cancelled"
           ? '<div class="ad-payact"><p class="ad-muted">Захиалагч QPay-ээр биш, данс руу эсвэл бэлнээр төлсөн бол:</p>' +
               '<button type="button" class="btn btn--outline btn--sm" data-ad="order-mark-paid" data-id="' + esc(o.id) + '">' +
               "Төлбөр хүлээн авснаа тэмдэглэх</button></div>"
           : "") +
         '<form id="ad-order-form">' +
-          '<h4 class="ad-subhead">Захиалагчийн мэдээлэл</h4>' +
+          '<h4 class="ad-subhead">Мэдээлэл засах</h4>' +
           '<div class="ad-grid2">' +
-            '<div class="field"><label>Нэр</label><input name="name" value="' + esc(o.customer.name) + '" /></div>' +
-            '<div class="field"><label>Утас</label><input name="phone" value="' + esc(o.customer.phone) + '" /></div>' +
+            '<div class="field"><label>Нэр</label><input name="name" value="' + esc(c.name) + '" /></div>' +
+            '<div class="field"><label>Утас</label><input name="phone" type="tel" value="' + esc(c.phone) + '" /></div>' +
           "</div>" +
-          '<div class="field"><label>Хаяг</label><input name="address" value="' + esc(o.customer.address || "") + '" /></div>' +
-          '<div class="field"><label>Тэмдэглэл</label><input name="note" value="' + esc(o.customer.note || "") + '" /></div>' +
-          '<div class="field"><label>Төлөв</label><select name="status">' +
-            STATUS_ORDER.map(function (k) { return '<option value="' + k + '"' + (o.status === k ? " selected" : "") + ">" + STATUS[k].label + "</option>"; }).join("") +
-          "</select></div>" +
+          '<div class="field"><label>Хаяг</label><input name="address" value="' + esc(c.address || "") + '" /></div>' +
+          '<div class="field"><label>Тэмдэглэл</label><input name="note" value="' + esc(c.note || "") + '" /></div>' +
+          '<div class="field"><label for="ad-ostatus">Төлөвийг гараар өөрчлөх</label><select id="ad-ostatus" name="status">' +
+            STATUS_ORDER.map(function (k) {
+              return '<option value="' + k + '"' + (cur === k ? " selected" : "") + ">" + STATUS[k].label + "</option>";
+            }).join("") +
+          "</select>" +
+          '<p class="ad-hint ad-hint--field">' +
+            (step ? "Ихэвчлэн дээрх «Дараагийн алхам» товч л хангалттай. " : "") +
+            "Алдаа засах үед эндээс дурын төлөвийг сонгож болно. " +
+            "«Хүргэлтэд гарсан», «Хүргэгдсэн», «Цуцлагдсан» болгоход захиалагчид и-мэйл очно.</p></div>" +
           '<div class="ad-form-foot">' +
             '<button type="button" class="btn btn--text" data-ad="close-modal">Хаах</button>' +
             '<button type="submit" class="btn btn--solid">Хадгалах</button>' +
@@ -611,19 +956,43 @@
       "</div>";
     adOpen(html);
 
-    u.qs("#ad-order-form").addEventListener("submit", async function (e) {
+    u.qs("#ad-order-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var f = e.target;
-      try {
-        await PM.api.patch("/orders/" + id, {
-          status: f.status.value,
-          customer: { name: f.name.value.trim(), phone: f.phone.value.trim(), address: f.address.value.trim(), note: f.note.value.trim() },
-        });
-        await Promise.all([reloadOrders(), reloadStats()]);
-        adClose();
-        u.toast("Захиалга хадгалагдлаа", "success");
-        renderOrders();
-      } catch (err) { u.toast(err.message, "error"); }
+      var body = {
+        customer: { name: f.name.value.trim(), phone: f.phone.value.trim(), address: f.address.value.trim(), note: f.note.value.trim() },
+      };
+      // Төлөв өөрчлөгдсөн үед л илгээнэ (хуучин "confirmed"-ийг дахин бичихгүй)
+      if (f.status.value !== cur) body.status = f.status.value;
+      var btn = f.querySelector('button[type="submit"]');
+      var save = async function () {
+        // Цуцлахыг асуусан үед товч нь баталгаажуулах цонхных байна
+        var yes = u.qs("#ad-confirm-yes");
+        if (yes) yes.disabled = true;
+        if (btn) btn.disabled = true;
+        try {
+          await PM.api.patch("/orders/" + id, body);
+          await Promise.all([reloadOrders(), reloadStats()]);
+          lastSync = Date.now();
+          adClose();
+          u.toast(body.status ? o.code + ": " + (STEP_TOAST[body.status] || "Төлөв солигдлоо") : "Захиалга хадгалагдлаа", "success");
+          refreshCurrentView();
+        } catch (err) {
+          u.toast(err.message, "error");
+          if (yes && yes.isConnected) yes.disabled = false;
+          if (btn && btn.isConnected) btn.disabled = false;
+        }
+      };
+      if (body.status === "cancelled") {
+        var p = o.payment || {};
+        var refund = p.method === "qpay" && p.status === "paid" && !p.paidManually;
+        return confirmModal("Захиалгыг цуцлах уу?",
+          withDot(o.code + (c.name ? " · " + c.name : "")) + " " +
+          (refund ? "Захиалагч QPay-ээр төлсөн тул мөнгийг нь буцааж олгох шаардлагатай гэж тэмдэглэгдэнэ. " : "") +
+          "Захиалагчид цуцалсан тухай и-мэйл очно.",
+          save, "Тийм, цуцлах", true);
+      }
+      save();
     });
   }
 
@@ -678,17 +1047,17 @@
     var orders = state.orders.filter(function (o) { return o.userId === id; })
       .sort(function (a, b) { return b.createdAt - a.createdAt; });
     var orderRows = orders.length ? orders.map(function (o) {
-      var st = STATUS[o.status] || { label: o.status, cls: "" };
-      return "<tr><td><b>" + esc(o.code) + "</b></td><td>" + esc(dateStr(o.createdAt)) + "</td>" +
-        "<td>" + o.items.reduce(function (n, it) { return n + it.qty; }, 0) + " ш</td>" +
+      return '<tr class="ad-clickable" data-ad="order-view" data-id="' + esc(o.id) + '">' +
+        "<td><b>" + esc(o.code) + "</b></td><td>" + esc(dateStr(o.createdAt)) + "</td>" +
+        "<td>" + itemCount(o) + " ш</td>" +
         "<td><b>" + fmt(o.total) + "</b></td>" +
-        '<td><span class="status ' + st.cls + '">' + esc(st.label) + "</span></td></tr>";
+        "<td>" + statusBadge(o) + "</td></tr>";
     }).join("") : '<tr><td colspan="5" class="ad-empty">Одоогоор захиалга хийгээгүй байна.</td></tr>';
     adOpen(
       '<div class="ad-form-wrap">' +
         '<h3 class="modal__title">' + esc(c.name) + "</h3>" +
-        '<p class="ad-muted">' + esc(c.email) + " · " + esc(c.phone || "Утас оруулаагүй") +
-          " · Бүртгүүлсэн: " + esc(dateStr(c.createdAt)) + "</p>" +
+        '<p class="ad-muted">' + esc(c.email) + " · Бүртгүүлсэн: " + esc(dateStr(c.createdAt)) + "</p>" +
+        (c.phone ? '<p class="ad-cphone">' + telLink(c.phone, "ad-tel--lg") + "</p>" : "") +
         '<div class="ad-sum">' +
           "<div><span>Захиалгын тоо</span><b>" + c.orderCount + "</b></div>" +
           "<div><span>Нийт зарцуулсан</span><b>" + fmt(c.totalSpent) + "</b></div>" +
@@ -752,14 +1121,17 @@
     if (!o) return;
     confirmModal("Төлбөр хүлээн авсан уу?",
       "Захиалга " + o.code + " · " + fmt(o.total) + ". Мөнгө таны дансанд орсон эсвэл бэлнээр төлөгдсөн эсэхийг шалгаад баталгаажуулна уу. " +
-      "Ингэснээр QPay-ийн нээлттэй нэхэмжлэх хаагдаж, захиалагчид баталгаажуулах и-мэйл очно.",
+      "Ингэснээр QPay-ийн нээлттэй нэхэмжлэх хаагдаж, захиалга «Баглаж байна» төлөвт орох бөгөөд захиалагчид баталгаажуулах и-мэйл очно.",
       async function () {
+        var yes = u.qs("#ad-confirm-yes");
+        if (yes) yes.disabled = true;
         try {
           await PM.api.patch("/orders/" + id, { paymentReceived: true });
           await Promise.all([reloadOrders(), reloadStats()]);
+          lastSync = Date.now();
           adClose();
           u.toast("Төлбөрийг хүлээн авсан гэж тэмдэглэлээ", "success");
-          renderOrders();
+          refreshCurrentView();
         } catch (err) { adClose(); u.toast(err.message, "error"); }
       }, "Тийм, хүлээн авсан");
   }
@@ -818,18 +1190,22 @@
   /* ================================================================== */
   /*  Баталгаажуулах modal                                              */
   /* ================================================================== */
-  function confirmModal(title, msg, onYes, yesLabel) {
+  /* danger === true бол улаан (аюултай үйлдэл) товч; yesLabel байхгүй бол "устгах" гэж үзнэ */
+  function confirmModal(title, msg, onYes, yesLabel, danger, noLabel) {
     adOpen(
       '<div class="ad-confirm">' +
         "<h3>" + esc(title) + "</h3><p>" + esc(msg) + "</p>" +
         '<div class="ad-form-foot">' +
-          '<button type="button" class="btn btn--text" data-ad="close-modal">Болих</button>' +
-          '<button type="button" class="btn btn--solid' + (yesLabel ? "" : " ad-danger-btn") + '" id="ad-confirm-yes">' +
+          '<button type="button" class="btn btn--text" data-ad="close-modal">' + esc(noLabel || "Болих") + "</button>" +
+          '<button type="button" class="btn btn--solid' + (yesLabel && !danger ? "" : " ad-danger-btn") + '" id="ad-confirm-yes">' +
             esc(yesLabel || "Тийм, устгах") + "</button>" +
         "</div>" +
       "</div>"
     );
-    u.qs("#ad-confirm-yes").addEventListener("click", onYes);
+    var yes = u.qs("#ad-confirm-yes");
+    yes.addEventListener("click", onYes);
+    // Аюулгүй үйлдэлд "Тийм" дээр шууд focus — Enter эсвэл нэг товшилтоор баталгаажна
+    if (yesLabel && !danger) setTimeout(function () { yes.focus(); }, 180);
   }
 
   /* ================================================================== */
@@ -838,9 +1214,21 @@
   function opt(val, label, cur) {
     return '<option value="' + val + '"' + (cur === val ? " selected" : "") + ">" + label + "</option>";
   }
+  /* Өгүүлбэрийн төгсгөлд цэг — "Тэмүүлэн Д." гэх мэт цэгээр төгссөн бол давхарлахгүй */
+  function withDot(s) {
+    s = String(s || "").trim();
+    return /[.!?…]$/.test(s) ? s : s + ".";
+  }
   function genderLabel(g) { return g === "men" ? "Эрэгтэй" : g === "women" ? "Эмэгтэй" : "Унисекс"; }
   function splitNotes(str) {
     return (str || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+  /* Хэвтээ гүйдэг мөрөнд (утсан дээрх цэс, chip) тухайн элементийг голлуулж харуулна.
+     Хуудсыг босоо чиглэлд гүйлгэхгүй. */
+  function scrollIntoRow(row, el) {
+    if (!row || !el || row.scrollWidth <= row.clientWidth) return;
+    var r = row.getBoundingClientRect(), e = el.getBoundingClientRect();
+    row.scrollLeft += (e.left + e.width / 2) - (r.left + r.width / 2);
   }
   function dateStr(ts) {
     var d = new Date(ts), p = function (n) { return String(n).padStart(2, "0"); };
@@ -868,6 +1256,10 @@
       case "product-delete": confirmDeleteProduct(id); break;
       case "brand-delete": confirmDeleteBrand(id); break;
       case "order-view": openOrderDetail(id); break;
+      case "order-step": stepOrder(id, el.getAttribute("data-to"), el); break;
+      case "order-filter": setOrderFilter(el.getAttribute("data-filter")); break;
+      case "goto-orders": gotoOrders(el.getAttribute("data-filter")); break;
+      case "orders-refresh": refreshOrders(el); break;
       case "order-mark-paid": confirmMarkPaid(id); break;
       case "customer-view": openCustomerDetail(id); break;
       case "review-delete": confirmDeleteReview(id); break;
@@ -880,20 +1272,18 @@
     if (!u.qs(".ad-nav")) return; // зөвхөн админ shell байгаа үед
     var v = (e.state && e.state.adminView) || "dashboard";
     if (VIEWS.indexOf(v) === -1) v = "dashboard";
+    var f = e.state && e.state.orderFilter;
+    if (f && FILTER_KEYS.indexOf(f) > -1) state.orderFilter = f;
+    adClose();
     switchView(v, false);
   });
 
-  document.addEventListener("change", function (e) {
-    var sel = e.target.closest("[data-order-status]");
-    if (sel) changeOrderStatus(sel.getAttribute("data-id"), sel.value);
-  });
-
-  // Status filter chips (delegated)
-  document.addEventListener("click", function (e) {
-    var chip = e.target.closest(".filter-chip[data-status]");
-    if (!chip) return;
-    state.orderFilter = chip.getAttribute("data-status");
-    renderOrders();
+  // Утсан дээр өөр апп руу шилжээд буцаж ороход шинэ захиалгыг чимээгүй татна
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible" || !u.qs(".ad-nav")) return;
+    if (Date.now() - lastSync < 30000) return;
+    if (state.view !== "orders" && state.view !== "dashboard") return;
+    refreshOrders(null, true);
   });
 
   // Overlay дарахад modal хаах

@@ -337,7 +337,7 @@
       '<h3 class="checkout__title">Төлбөр амжилттай хийгдлээ</h3>' +
       '<p class="checkout__lead">Таны <b>' + u.escapeHtml(s.code) + "</b> дугаартай захиалгын төлбөр (" + u.formatPrice(s.total) +
         ") орлоо." + (s.test ? " <b>(ТЕСТ: бодит мөнгө шилжээгүй)</b>" : "") +
-        "<br />Захиалгын мэдээллийг таны и-мэйл хаяг руу илгээлээ. Хүргэлтээ тохирохоор бид удахгүй тантай холбогдоно. Биднийг сонгосонд баярлалаа!</p>" +
+        "<br />Бид захиалгыг тань одоо баглаж байна. Хүргэлтэд гармагц танд и-мэйлээр мэдэгдэнэ, явцыг нь «Миний захиалга» хэсгээс харж болно. Биднийг сонгосонд баярлалаа!</p>" +
       '<div class="checkout__actions">' +
         '<button type="button" class="btn btn--solid btn--block" data-action="open-orders">Миний захиалга</button>' +
         '<button type="button" class="btn btn--text btn--block" data-action="close-modal">Үргэлжлүүлэн дэлгүүр хэсэх</button>' +

@@ -421,9 +421,10 @@ PM.session = (function () {
           '<div class="myorder">' +
             '<div class="myorder__top">' +
               '<span class="myorder__code">' + esc(o.code) + "</span>" +
-              PM.ui.statusBadge(o.status) +
+              PM.ui.statusBadge(o) +
             "</div>" +
             '<p class="myorder__date">' + esc(PM.ui.formatDate(o.createdAt)) + "</p>" +
+            orderProgress(o) +
             '<p class="myorder__items">' + PM.ui.orderItemsLine(o) + "</p>" +
             '<p class="myorder__total">Нийт: <b>' + PM.utils.formatPrice(o.total) + "</b>" +
               PM.ui.paymentBadge(o) + "</p>" +
@@ -437,6 +438,123 @@ PM.session = (function () {
     }
     PM.modal.open('<div class="orders-view"><h3 class="modal__title">Миний захиалга</h3>' +
       body + "</div>", { wide: true });
+  }
+
+  /* ---------------- Захиалгын явц (tracker) ----------------
+   * Төлбөр → Баглаж байна → Багласан → Хүргэлтэд гарсан → Хүргэгдсэн.
+   * Гараар төлөх / хуучин захиалгад эхний алхам "Хүлээн авсан" нэртэй, үргэлж хийгдсэн байна.
+   * Хийгдсэн алхам бүрийн доор statusHistory-оос огноо харуулна (байхгүй бол огноогүй).
+   */
+  var TRACK_STEPS = ["packing", "packed", "delivering", "done"];
+
+  var TRACK_NOTES = {
+    await:      "Төлбөрөө төлсний дараа бид захиалгыг тань баглаж эхэлнэ.",
+    new:        "Захиалгыг тань хүлээн авлаа. Удахгүй баглаж эхэлнэ.",
+    packing:    "Захиалгыг тань анхааралтай баглаж байна.",
+    packed:     "Захиалга тань бэлэн боллоо. Удахгүй хүргэлтэд гарна.",
+    delivering: "Захиалга тань хүргэлтэд гарлаа. Утсаа ойрхон байлгаарай.",
+    done:       "Захиалга тань хүргэгдлээ. Биднээр үйлчлүүлсэнд баярлалаа!",
+  };
+
+  function orderProgress(o) {
+    var ui = PM.ui;
+    var key = ui.normStatus(o.status);
+    if (key === "cancelled") return cancelledBox(o);
+
+    var history = ui.statusHistory(o);
+    // Тухайн төлөвт хамгийн сүүлд орсон огноо (буцааж зассан бол сүүлийнхийг)
+    function lastAt(status) {
+      for (var i = history.length - 1; i >= 0; i--) {
+        if (history[i].status === status && history[i].at) return history[i].at;
+      }
+      return null;
+    }
+
+    var p = o.payment;
+    var isQpay = !!(p && p.method === "qpay");
+    var paid = ui.isPaid(o);
+
+    // Эхний алхам: QPay бол "Төлбөр" (төлөгдсөн огноо), бусад үед "Хүлээн авсан" (захиалсан огноо)
+    var steps = [{
+      label: isQpay ? "Төлбөр" : "Хүлээн авсан",
+      at: isQpay ? (paid ? (p.paidAt || lastAt("packing")) : null) : (lastAt("new") || o.createdAt),
+    }];
+    TRACK_STEPS.forEach(function (s) {
+      steps.push({ label: ui.STATUS[s].label, at: lastAt(s) });
+    });
+
+    // Хүрсэн алхмын индекс: -1 = төлбөр хүлээгдэж байна
+    var reached = TRACK_STEPS.indexOf(key) + 1; // packing→1 … done→4
+    if (reached === 0) reached = paid ? 0 : -1;  // "new" (эсвэл танигдаагүй төлөв)
+
+    var items = steps.map(function (st, i) {
+      var cls = "track__step";
+      var state = "";
+      var mark = "";
+      // QPay төлбөр ороогүй бол (админ төлвийг урагшлуулсан ч) "Төлбөр" алхмыг хийгдсэн гэж харуулахгүй
+      var done = i <= reached && (i > 0 || paid);
+      if (done) {
+        cls += " is-done";
+        mark = "✓";
+        state = "дууссан";
+      }
+      if (i === reached || (reached === -1 && i === 0)) { cls += " is-current"; state = "одоогийн шат"; }
+      if (i === 0 && !paid) { cls += " is-waiting"; state = "хүлээгдэж байна"; }
+      if (done && i < reached) cls += " is-linked"; // энэ ба дараагийн алхам хийгдсэн → хооронд нь алтан шугам
+      var time = done && st.at ? ui.formatShortDate(st.at) : "";
+      return (
+        '<li class="' + cls + '"' + (cls.indexOf("is-current") > -1 ? ' aria-current="step"' : "") + ">" +
+          '<span class="track__dot" aria-hidden="true">' + mark + "</span>" +
+          '<span class="track__label">' + esc(st.label) +
+            (state ? '<span class="track__sr"> — ' + state + "</span>" : "") + "</span>" +
+          (time ? '<time class="track__time" datetime="' + isoDate(st.at) + '">' +
+            esc(time) + "</time>" : "") +
+        "</li>"
+      );
+    }).join("");
+
+    var note = reached === -1 ? TRACK_NOTES.await : TRACK_NOTES[key];
+    return (
+      '<ol class="track" aria-label="Захиалгын явц">' + items + "</ol>" +
+      (note ? '<p class="track-note">' + esc(note) + "</p>" : "")
+    );
+  }
+
+  /** Цуцлагдсан захиалга — tracker-ийн оронд тодорхой мэдэгдэл */
+  function cancelledBox(o) {
+    var history = PM.ui.statusHistory(o);
+    var at = null;
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (history[i].status === "cancelled" && history[i].at) { at = history[i].at; break; }
+    }
+    if (!at) at = o.updatedAt || null;
+    if (at && !PM.ui.formatShortDate(at)) at = null; // буруу огноо
+    var expired = !!(o.payment && o.payment.method === "qpay" && o.payment.status === "expired");
+    var c = (PM.CONFIG && PM.CONFIG.contact) || {};
+    var text = expired
+      ? esc("Төлбөр хугацаандаа хийгдээгүй тул захиалга автоматаар цуцлагдлаа. Дахин авах бол бараагаа сагсандаа нэмээд шинээр захиалаарай.")
+      : c.phone
+        ? "Асуух зүйл байвал " +
+            (c.phoneHref ? '<a href="' + esc(c.phoneHref) + '">' + esc(c.phone) + "</a>" : esc(c.phone)) +
+            " дугаарт залгаарай."
+        : esc("Асуух зүйл байвал бидэнтэй холбогдоорой.");
+    return (
+      '<div class="track-cancel">' +
+        '<span class="track-cancel__icon" aria-hidden="true">✕</span>' +
+        '<div class="track-cancel__body">' +
+          '<p class="track-cancel__title">Захиалга цуцлагдсан' +
+            (at ? ' <time class="track-cancel__time" datetime="' + isoDate(at) + '">' +
+              esc(PM.ui.formatShortDate(at)) + "</time>" : "") + "</p>" +
+          '<p class="track-cancel__text">' + text + "</p>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  /** <time datetime> утга (буруу огноонд хоосон) */
+  function isoDate(ts) {
+    var d = new Date(ts);
+    return isNaN(d.getTime()) ? "" : d.toISOString();
   }
 
   /* Онлайн төлбөр хүлээгдэж буй захиалга — хугацаа дууссан эсэхийг сервер шийднэ */

@@ -141,6 +141,14 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
   border-color: rgba(201,168,76,.3);
 }
 .ad-nav__ico { font-size: 15px; width: 20px; text-align: center; }
+/* Хийх ажлын тоо ("Захиалга" цэсэнд) */
+.ad-nav__badge {
+  margin-left: auto; min-width: 22px; height: 22px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 100px; background: var(--a-gold); color: #16130a;
+  font-size: 12px; font-weight: 700; line-height: 1;
+}
+.ad-nav__badge[hidden] { display: none; }
 
 .ad-main { flex: 1 1 auto; min-width: 0; padding: 32px 36px 64px; }
 
@@ -216,10 +224,21 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
   padding: 16px 20px; border-bottom: 1px solid var(--a-line);
 }
 .ad-hint { color: var(--a-muted); font-size: 13px; margin: 0 0 13px; line-height: 1.55; }
+.ad-panel__body { padding: 16px 20px 18px; }
 
-.ad-sbadges { display: flex; flex-wrap: wrap; gap: 22px; padding: 20px; }
-.ad-sbadge { display: flex; align-items: center; gap: 9px; }
+.ad-sbadges { display: flex; flex-wrap: wrap; gap: 10px 14px; padding: 16px 20px; }
+.ad-sbadge {
+  display: flex; align-items: center; gap: 9px; cursor: pointer;
+  background: none; border: 1px solid transparent; border-radius: 100px;
+  padding: 5px 12px 5px 5px; color: inherit; font: inherit;
+  transition: border-color .15s var(--a-ease), background .15s;
+}
+.ad-sbadge:hover { border-color: var(--a-line-2); background: rgba(255,255,255,.03); }
 .ad-sbadge b { font-size: 18px; color: var(--a-text); }
+
+/* Панелийн гарчиг + баруун талын товч */
+.ad-panel__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--a-line); padding-right: 10px; }
+.ad-panel__bar .ad-panel__title { border-bottom: 0; }
 
 /* ------------------------------------------------------------------ */
 /*  Хүснэгт                                                            */
@@ -257,32 +276,30 @@ body.admin ::selection { background: var(--a-gold); color: #16130a; }
 .ad-del:hover { color: var(--a-danger) !important; }
 
 /* ------------------------------------------------------------------ */
-/*  Статус select                                                      */
+/*  Захиалгын төлвийн badge                                            */
+/*  Шинэ (цэнхэр) → Баглаж байна (улбар) → Багласан (ногоон-цэнхэр)    */
+/*  → Хүргэлтэд гарсан (алт) → Хүргэгдсэн (ногоон) · Цуцлагдсан (улаан) */
 /* ------------------------------------------------------------------ */
-.ad-status-select {
-  border: 1px solid var(--a-line-2); border-radius: 100px;
-  padding: 6px 13px; font-size: 12.5px; font-weight: 600; cursor: pointer;
-  background: var(--a-panel-2); color: var(--a-text);
-  appearance: none; -webkit-appearance: none;
+body.admin {
+  --st-new:        #9db8f0;  --st-new-bg:        rgba(90,130,220,.16);
+  --st-packing:    #f2ad6e;  --st-packing-bg:    rgba(232,146,74,.16);
+  --st-packed:     #79d0da;  --st-packed-bg:     rgba(72,184,196,.15);
+  --st-delivering: #e3ca7f;  --st-delivering-bg: rgba(201,168,76,.17);
+  --st-done:       #6fd79a;  --st-done-bg:       rgba(74,197,126,.15);
+  --st-cancelled:  #eb8b82;  --st-cancelled-bg:  rgba(224,106,95,.15);
 }
-.ad-status-select.st-new        { background: rgba(90,130,220,.16); color: #9db8f0; border-color: rgba(90,130,220,.35); }
-.ad-status-select.st-confirmed  { background: rgba(74,197,126,.15); color: #6fd79a; border-color: rgba(74,197,126,.35); }
-.ad-status-select.st-delivering { background: rgba(201,168,76,.16); color: var(--a-gold-hi); border-color: rgba(201,168,76,.4); }
-.ad-status-select.st-done       { background: rgba(255,255,255,.08); color: var(--a-soft); border-color: var(--a-line-2); }
-.ad-status-select.st-cancelled  { background: rgba(224,106,95,.15); color: #eb8b82; border-color: rgba(224,106,95,.35); }
-.ad-status-select option { background: #17181c; color: var(--a-text); }
-
-/* Статус badge (shared .status admin дотор) */
 body.admin .status {
-  display: inline-block; font-size: 11.5px; font-weight: 600;
+  display: inline-block; font-size: 11.5px; font-weight: 600; white-space: nowrap;
   padding: 4px 11px; border-radius: 100px;
   background: rgba(255,255,255,.08); color: var(--a-soft);
 }
-body.admin .status.st-new        { background: rgba(90,130,220,.16); color: #9db8f0; }
-body.admin .status.st-confirmed  { background: rgba(74,197,126,.15); color: #6fd79a; }
-body.admin .status.st-delivering { background: rgba(201,168,76,.16); color: var(--a-gold-hi); }
-body.admin .status.st-done       { background: rgba(255,255,255,.08); color: var(--a-soft); }
-body.admin .status.st-cancelled  { background: rgba(224,106,95,.15); color: #eb8b82; }
+body.admin .status.st-new        { background: var(--st-new-bg);        color: var(--st-new); }
+body.admin .status.st-packing,
+body.admin .status.st-confirmed  { background: var(--st-packing-bg);    color: var(--st-packing); }
+body.admin .status.st-packed     { background: var(--st-packed-bg);     color: var(--st-packed); }
+body.admin .status.st-delivering { background: var(--st-delivering-bg); color: var(--st-delivering); }
+body.admin .status.st-done       { background: var(--st-done-bg);       color: var(--st-done); }
+body.admin .status.st-cancelled  { background: var(--st-cancelled-bg);  color: var(--st-cancelled); }
 
 /* Шүүлтийн chip-үүд */
 body.admin .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -391,6 +408,12 @@ body.admin .auth__err {
 .ad-confirm { padding: 34px; }
 .ad-confirm h3 { font-family: var(--a-serif); font-weight: 600; font-size: 24px; margin-bottom: 8px; color: var(--a-text); }
 .ad-confirm p { color: var(--a-soft); margin: 0; }
+.ad-confirm .ad-form-foot .btn { min-height: 44px; min-width: 110px; }
+@media (max-width: 540px) {
+  .ad-confirm { padding: 26px 22px; }
+  .ad-confirm .ad-form-foot { flex-direction: row; }
+  .ad-confirm .ad-form-foot .btn { flex: 1; }
+}
 
 /* Overlay */
 body.admin .overlay, #ad-overlay {
@@ -437,8 +460,9 @@ body.admin .overlay.is-visible, #ad-overlay.is-visible { opacity: 1; visibility:
 /*  Хуудасны толгойн үйлдлүүд, хайлт                                   */
 /* ------------------------------------------------------------------ */
 .ad-page__actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.ad-search {
-  min-width: 210px; max-width: 300px;
+/* body.admin — ерөнхий input-ийн width:100%-ийг дарж, товчтойгоо нэг мөрөнд багтана */
+body.admin .ad-search {
+  width: 300px; flex: 0 1 300px; min-width: 210px; max-width: 100%;
   border: 1px solid var(--a-line-2); border-radius: 100px;
   padding: 9px 16px; font-size: 13.5px; color: var(--a-text);
   background: var(--a-panel-2);
@@ -471,3 +495,293 @@ body.admin .overlay.is-visible, #ad-overlay.is-visible { opacity: 1; visibility:
 .tag--test { background: rgba(90,130,220,.18); color: #9db8f0; }
 .ad-payact { margin: 4px 0 18px; padding: 12px 14px; border: 1px dashed var(--a-line-2); border-radius: 10px; }
 .ad-payact p { margin: 0 0 8px; font-size: 13px; }
+
+/* ================================================================== */
+/*  Өнөөдөр хийх ажил (хянах самбар)                                   */
+/* ================================================================== */
+.ad-todo {
+  background:
+    radial-gradient(560px 220px at 0% 0%, rgba(201,168,76,.12), transparent 70%),
+    var(--a-panel);
+  border: 1px solid rgba(201,168,76,.3);
+  border-radius: var(--a-r-lg);
+  padding: 22px 22px 18px; margin-bottom: 24px;
+}
+.ad-todo__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.ad-todo__title { font-family: var(--a-serif); font-weight: 600; font-size: 27px; line-height: 1.1; color: var(--a-text); }
+.ad-todo__sub { margin: 4px 0 0; color: var(--a-muted); font-size: 13.5px; }
+.ad-todo__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+.ad-tile {
+  position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ico n" "txt txt";
+  align-items: start; gap: 10px 12px;
+  text-align: left; cursor: pointer; font: inherit; color: inherit;
+  background: var(--a-panel-2); border: 1px solid var(--a-line-2);
+  border-radius: var(--a-r); padding: 18px 20px 17px; min-height: 138px;
+  transition: border-color .16s var(--a-ease), transform .12s, box-shadow .16s;
+}
+.ad-tile::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: var(--tile-c, var(--a-gold)); opacity: .9;
+}
+.ad-tile--packing    { --tile-c: var(--st-packing); }
+.ad-tile--packed     { --tile-c: var(--st-packed); }
+.ad-tile--delivering { --tile-c: var(--st-delivering); }
+.ad-tile:hover { border-color: var(--tile-c, var(--a-gold)); transform: translateY(-2px); box-shadow: var(--a-shadow); }
+.ad-tile:focus-visible { outline: 2px solid var(--a-gold); outline-offset: 2px; }
+.ad-tile__ico { grid-area: ico; font-size: 24px; line-height: 1; }
+/* Тоо — Inter (Cormorant-ын "1" нь "I" шиг харагддаг тул) */
+.ad-tile__n {
+  grid-area: n; font-family: "Inter", sans-serif; font-weight: 700; font-variant-numeric: tabular-nums;
+  font-size: 42px; line-height: .95; letter-spacing: -.02em; color: var(--tile-c, var(--a-gold-hi));
+}
+.ad-tile__txt { grid-area: txt; display: flex; flex-direction: column; gap: 4px; }
+.ad-tile__txt b { font-size: 16px; font-weight: 700; color: var(--a-text); }
+.ad-tile__txt em { font-style: normal; font-size: 12.5px; line-height: 1.45; color: var(--a-muted); }
+.ad-tile.is-hot { border-color: rgba(201,168,76,.45); }
+.ad-tile.is-zero .ad-tile__n { color: var(--a-muted); }
+.ad-tile.is-zero::before { opacity: .3; }
+
+.ad-tile-mini {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  width: 100%; margin-top: 12px; min-height: 48px;
+  text-align: left; cursor: pointer; font: inherit; font-size: 14px; color: var(--a-soft);
+  background: transparent; border: 1px dashed var(--a-line-2); border-radius: var(--a-r-sm);
+  padding: 11px 16px; transition: border-color .15s, background .15s;
+}
+.ad-tile-mini:hover { border-color: var(--a-gold); background: rgba(255,255,255,.02); }
+.ad-tile-mini b { color: var(--a-text); font-size: 16px; margin-left: 4px; }
+.ad-tile-mini em { font-style: normal; font-size: 12.5px; color: var(--a-muted); margin-left: auto; }
+
+/* ================================================================== */
+/*  Захиалгын жагсаалт                                                 */
+/* ================================================================== */
+.ad-chipbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 18px; }
+body.admin .ad-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; white-space: nowrap; }
+.ad-chip__n {
+  min-width: 22px; height: 22px; padding: 0 7px; border-radius: 100px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.1); color: var(--a-text);
+  font-size: 12px; font-weight: 700; line-height: 1;
+}
+body.admin .ad-chip--todo { color: var(--a-gold-hi); font-weight: 600; }
+body.admin .filter-chip.is-active .ad-chip__n { background: rgba(22,19,10,.2); color: #16130a; }
+
+.ad-otable .oc-code .ad-muted,
+.ad-otable .oc-cust b { display: block; }
+.ad-olink {
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit; text-align: left; white-space: nowrap;
+  font-size: 14.5px; font-weight: 700; color: var(--a-text); letter-spacing: .02em;
+}
+.ad-olink:hover { color: var(--a-gold-hi); text-decoration: underline; text-underline-offset: 3px; }
+.ad-otags { margin-top: 2px; }
+/* Нарийн баганад шошго хоёр мөр болж болно — тэгэхэд ч цэвэрхэн харагдана */
+.ad-otags .tag { border-radius: 8px; line-height: 1.35; }
+.ad-otable .oc-more { text-align: right; white-space: nowrap; }
+
+/* Утас — дарж залгах */
+.ad-tel {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  color: var(--a-gold-hi); font-weight: 600; font-size: 13.5px; text-decoration: none;
+  padding: 3px 0;
+}
+.ad-tel svg { flex: none; }
+.ad-tel:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ad-tel--lg {
+  font-size: 16px; min-height: 44px; padding: 8px 18px;
+  border: 1px solid rgba(201,168,76,.45); border-radius: 100px; background: var(--a-gold-soft);
+}
+.ad-tel--lg:hover { text-decoration: none; border-color: var(--a-gold); background: rgba(201,168,76,.2); }
+.ad-cphone { margin: 12px 0 0; }
+
+/* Дараагийн алхмын товч — мөр бүрт ганц үндсэн үйлдэл */
+.ad-step {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 38px; padding: 8px 16px; white-space: nowrap;
+  font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  background: var(--a-gold); color: #16130a;
+  border: 1px solid var(--a-gold); border-radius: var(--a-r-sm);
+  transition: background .15s var(--a-ease), box-shadow .15s, opacity .15s;
+}
+.ad-step:hover { background: var(--a-gold-hi); border-color: var(--a-gold-hi); box-shadow: 0 6px 18px rgba(201,168,76,.28); }
+.ad-step:focus-visible { outline: 2px solid var(--a-gold-hi); outline-offset: 2px; }
+.ad-step:disabled, .ad-step.is-busy { opacity: .55; cursor: progress; box-shadow: none; }
+.ad-step__ico { font-size: 1.05em; line-height: 1; }
+.ad-step--lg { width: 100%; min-height: 52px; font-size: 16px; }
+.ad-step-note {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--a-muted); white-space: nowrap;
+}
+.ad-step-note::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
+  background: #e3b25c; box-shadow: 0 0 0 3px rgba(227,178,92,.18);
+}
+.ad-empty__btn { margin-top: 12px; }
+
+/* ================================================================== */
+/*  Захиалгын дэлгэрэнгүй: дараагийн алхам, захиалагч, явц             */
+/* ================================================================== */
+.ad-order-head { flex-wrap: wrap; }
+/* Захиалгын код — утсаар уншиж хэлэхэд "1"/"I" андуурагдахгүй */
+.ad-order-head .ad-code { font-family: "Inter", sans-serif; font-weight: 700; font-size: .8em; letter-spacing: .02em; }
+.ad-onext {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 18px 0 4px; padding: 14px;
+  background: var(--a-gold-soft); border: 1px solid rgba(201,168,76,.32); border-radius: var(--a-r);
+}
+.ad-onext__label { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--a-gold-hi); }
+.ad-onext__hint { font-size: 12.5px; color: var(--a-muted); text-align: center; }
+.ad-onext--muted {
+  background: rgba(255,255,255,.03); border-style: dashed; border-color: var(--a-line-2);
+  color: var(--a-soft); font-size: 13.5px; line-height: 1.5;
+}
+.ad-odgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px; }
+.ad-odgrid .ad-subhead { margin-top: 0; }
+.ad-ocust {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  background: var(--a-panel-2); border: 1px solid var(--a-line); border-radius: var(--a-r); padding: 16px;
+}
+.ad-ocust__name { font-size: 16px; color: var(--a-text); }
+.ad-ocust__line { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--a-soft); }
+.ad-ocust__line span {
+  display: block; font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--a-muted);
+}
+.ad-hint--field { margin: 2px 0 0; font-size: 12.5px; }
+
+/* Босоо явцын шугам */
+.ad-tl { list-style: none; margin: 0; padding: 2px 0 0; }
+.ad-tl__item { position: relative; padding: 0 0 16px 28px; }
+.ad-tl__item::before {
+  content: ""; position: absolute; left: 6px; top: 16px; bottom: -1px; width: 2px;
+  background: rgba(201,168,76,.45);
+}
+.ad-tl__item:last-child { padding-bottom: 0; }
+.ad-tl__item:last-child::before { display: none; }
+.ad-tl__dot {
+  position: absolute; left: 0; top: 3px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--a-gold); box-shadow: 0 0 0 3px var(--a-panel);
+}
+.ad-tl__body b { display: block; font-size: 14px; font-weight: 600; color: var(--a-text); line-height: 1.35; }
+.ad-tl__body span { display: block; font-size: 12.5px; color: var(--a-muted); margin-top: 1px; }
+.ad-tl__item.is-current .ad-tl__dot { box-shadow: 0 0 0 3px var(--a-panel), 0 0 0 6px rgba(201,168,76,.28); }
+.ad-tl__item.is-current b { color: var(--a-gold-hi); }
+.ad-tl__item.is-pay .ad-tl__dot { background: #4ac57e; }
+.ad-tl__item.tl-cancelled .ad-tl__dot { background: var(--a-danger); }
+.ad-tl__item.tl-cancelled.is-current .ad-tl__dot { box-shadow: 0 0 0 3px var(--a-panel), 0 0 0 6px rgba(224,106,95,.28); }
+.ad-tl__item.tl-cancelled.is-current b { color: var(--st-cancelled); }
+.ad-tl__item.is-todo .ad-tl__dot { background: var(--a-panel); border: 2px solid var(--a-line-2); }
+.ad-tl__item.is-todo b { color: var(--a-muted); font-weight: 500; }
+/* Одоогийн алхмаас цааших шугам тасархай */
+.ad-tl__item.is-current::before,
+.ad-tl__item.is-todo::before {
+  background: repeating-linear-gradient(to bottom, var(--a-line-2) 0 4px, transparent 4px 8px);
+}
+
+/* Жижиг зөөврийн компьютер (1101–1260px): 6 баганатай хүснэгт багтахын тулд нүдийг нягтруулна */
+@media (min-width: 1101px) and (max-width: 1260px) {
+  .ad-otable th, .ad-otable td { padding-left: 10px; padding-right: 10px; }
+  .ad-otable .ad-step { padding-left: 12px; padding-right: 12px; }
+  .ad-otable .oc-more .btn { padding-left: 4px; padding-right: 4px; }
+}
+
+/* ================================================================== */
+/*  Таблет ба утас (≤1100px): захиалгын хүснэгт → карт                 */
+/*  (6 багана багтахгүй тул карт болгож, товчийг томруулна)            */
+/* ================================================================== */
+@media (max-width: 1100px) {
+  .ad-panel--orders { background: transparent; border: 0; overflow: visible; }
+  .ad-panel--orders .ad-panel__bar { border: 0; padding: 0; }
+  .ad-panel--orders .ad-panel__title { padding: 4px 2px 12px; border: 0; }
+  .ad-panel--orders .ad-tablewrap { overflow: visible; }
+  .ad-otable, .ad-otable tbody { display: block; }
+  .ad-otable thead { display: none; }
+  .ad-otable tr {
+    display: block; margin-bottom: 12px;
+    background: var(--a-panel); border: 1px solid var(--a-line); border-radius: var(--a-r);
+  }
+  .ad-otable tbody tr:hover { background: var(--a-panel); }
+  .ad-otable tr.ad-orow {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "code status" "cust cust" "sum sum" "step more";
+    gap: 12px; padding: 16px;
+  }
+  .ad-otable td { display: block; padding: 0; border: 0; min-width: 0; }
+  .ad-otable .oc-code   { grid-area: code; }
+  .ad-otable .oc-status { grid-area: status; justify-self: end; align-self: start; }
+  .ad-otable .oc-cust   {
+    grid-area: cust; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 10px 0; border-top: 1px solid var(--a-line); border-bottom: 1px solid var(--a-line);
+  }
+  .ad-otable .oc-cust b { font-size: 15px; }
+  .ad-otable .oc-sum    { grid-area: sum; }
+  .ad-otable .oc-sum > b { font-size: 17px; color: var(--a-gold-hi); }
+  .ad-otable .oc-step   { grid-area: step; align-self: center; }
+  .ad-otable .oc-more   { grid-area: more; align-self: center; }
+  .ad-otable .oc-step:empty { display: none; }
+  .ad-otable .oc-step:empty + .oc-more { grid-column: 1 / -1; }
+  .ad-otable .oc-step:empty + .oc-more .btn { width: 100%; }
+  .ad-otable .oc-more .btn { border: 1px solid var(--a-line-2); min-height: 48px; }
+  /* Дарах талбай 40px (харагдах байрлал өөрчлөгдөхгүй) */
+  .ad-otable .ad-olink { font-size: 16px; padding: 8px 0; margin: -8px 0; }
+  .ad-otable .ad-tel {
+    min-height: 40px; padding: 6px 14px; font-size: 14.5px;
+    border: 1px solid rgba(201,168,76,.4); border-radius: 100px; background: var(--a-gold-soft);
+  }
+  .ad-otable .ad-tel:hover { text-decoration: none; }
+  .ad-otable .ad-step { width: 100%; min-height: 48px; font-size: 15px; }
+  .ad-otable .ad-step-note { white-space: normal; min-height: 48px; }
+  .ad-otable .ad-empty { display: block; padding: 28px 18px !important; }
+}
+/* Таблет (721–1100px): зай хүрвэл картууд хоёр баганаар */
+@media (min-width: 721px) and (max-width: 1100px) {
+  .ad-otable tbody { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; align-items: start; }
+  .ad-otable tbody tr { margin-bottom: 0; }
+  .ad-otable tbody tr:not(.ad-orow) { grid-column: 1 / -1; }
+}
+
+/* ================================================================== */
+/*  Утас (≤720px): том товчнууд, нэг баганат хийх ажил, гүйдэг шүүлтүүр */
+/* ================================================================== */
+@media (max-width: 720px) {
+  body.admin .btn--sm { min-height: 40px; }
+  .ad-modal__close { width: 40px; height: 40px; }
+  /* iPhone input дарахад томруулахгүйн тулд 16px */
+  body.admin input, body.admin select, body.admin textarea { font-size: 16px; }
+  body.admin .ad-search { flex: 1 1 180px; width: auto; min-width: 0; min-height: 44px; }
+  .ad-page__actions { width: 100%; flex-wrap: nowrap; }
+
+  /* Хийх ажлын том товчнууд — нэг баганаар, тоо баруун талд */
+  .ad-todo { padding: 18px 14px 14px; border-radius: var(--a-r); }
+  .ad-todo__head { flex-wrap: wrap; }
+  .ad-todo__title { font-size: 24px; }
+  .ad-todo__grid { grid-template-columns: 1fr; gap: 10px; }
+  .ad-tile {
+    grid-template-columns: auto 1fr auto; grid-template-areas: "ico txt n";
+    align-items: center; min-height: 76px; padding: 14px 16px; gap: 14px;
+  }
+  .ad-tile::before { right: auto; bottom: 0; width: 3px; height: auto; }
+  .ad-tile__n { font-size: 34px; }
+  .ad-tile-mini em { margin-left: 0; flex-basis: 100%; }
+
+  /* Шүүлтүүр — хэвтээ гүйдэг нэг мөр */
+  .ad-chipbar {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    margin: -6px -18px 16px; padding: 2px 18px 6px; scrollbar-width: none;
+  }
+  .ad-chipbar::-webkit-scrollbar { display: none; }
+  body.admin .ad-chip { min-height: 42px; flex: none; }
+
+  /* Дэлгэрэнгүй цонх */
+  .ad-modal { padding: 12px 10px 24px; }
+  .ad-odgrid { grid-template-columns: 1fr; gap: 6px; margin-top: 16px; }
+  .ad-odgrid > div + div .ad-subhead { margin-top: 18px; }
+  .ad-ocust .ad-tel--lg { width: 100%; justify-content: center; }
+}
+
+/* Жижиг утас (≤380px): алхмын товч ба «Дэлгэрэнгүй»-г тус тусад нь мөрөнд */
+@media (max-width: 380px) {
+  .ad-otable tr.ad-orow { grid-template-areas: "code status" "cust cust" "sum sum" "step step" "more more"; }
+  .ad-otable .oc-more .btn { width: 100%; min-height: 44px; }
+}
